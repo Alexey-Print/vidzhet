@@ -95,10 +95,11 @@ public class SettingsActivity extends Activity {
         share.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFF3A3F47));
         share.setOnClickListener(v -> {
             android.content.Intent i = new android.content.Intent(android.content.Intent.ACTION_SEND);
-            i.setType("text/plain");
-            i.putExtra(android.content.Intent.EXTRA_TEXT,
-                    "Виджет «Часы-календарь» (Android 12 и новее). Скачать и установить:\n" + LINK);
-            startActivity(android.content.Intent.createChooser(i, "Поделиться виджетом"));
+            i.setType("application/vnd.android.package-archive");
+            i.putExtra(android.content.Intent.EXTRA_STREAM, ApkProvider.URI);
+            i.setClipData(android.content.ClipData.newRawUri(ApkProvider.NAME, ApkProvider.URI));
+            i.addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            startActivity(android.content.Intent.createChooser(i, "Отправить программу"));
         });
         LinearLayout btns = new LinearLayout(this);
         btns.setOrientation(LinearLayout.HORIZONTAL);
