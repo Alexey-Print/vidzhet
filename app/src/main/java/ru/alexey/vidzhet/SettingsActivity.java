@@ -43,7 +43,8 @@ public class SettingsActivity extends Activity {
         root.addView(preview, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(160)));
         refresh();
 
-        colorRow("Дата и день недели", "date");
+        colorRow("Дата", "date");
+        colorRow("День недели", "wday");
         colorRow("Цифровые часы", "time");
         colorRow("Кружок «сегодня»", "today");
         colorRow("Выходные дни", "weekend");
@@ -169,6 +170,7 @@ public class SettingsActivity extends Activity {
             case "time": return ClockWidget.time(p);
             case "today": return ClockWidget.today(p);
             case "date": return ClockWidget.date(p);
+            case "wday": return ClockWidget.wday(p);
             case "weekend": return ClockWidget.weekend(p);
             default: return ClockWidget.second(p);
         }
