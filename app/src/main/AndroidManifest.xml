@@ -10,6 +10,9 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <activity android:name=".CalendarActivity" android:exported="false"
+            android:taskAffinity="ru.alexey.vidzhet.calendar" android:excludeFromRecents="true"
+            android:screenOrientation="portrait"/>
         <provider android:name=".ApkProvider" android:authorities="ru.alexey.vidzhet.apk"
             android:exported="false" android:grantUriPermissions="true"/>
         <receiver android:name=".ClockWidget" android:exported="true" android:label="Часы-календарь">
