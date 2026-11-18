@@ -84,8 +84,10 @@ public class ClockWidget extends AppWidgetProvider {
         int dc = Pal.COLORS[date(p)];
         v.setTextColor(R.id.date, dc);
         v.setTextColor(R.id.wday, Pal.COLORS[wday(p)]);
-        v.setIcon(R.id.analog, "setSecondHand", Icon.createWithResource(c,
-                showSec(p) ? Pal.SECOND[second(p)] : R.drawable.hand_empty));
+        boolean sec = showSec(p);
+        v.setViewVisibility(R.id.analog, sec ? View.VISIBLE : View.GONE);
+        v.setViewVisibility(R.id.analog_nosec, sec ? View.GONE : View.VISIBLE);
+        if (sec) v.setIcon(R.id.analog, "setSecondHand", Icon.createWithResource(c, Pal.SECOND[second(p)]));
 
         int we = Pal.COLORS[weekend(p)];
         v.setTextColor(HDR[5], we);
@@ -128,6 +130,7 @@ public class ClockWidget extends AppWidgetProvider {
                 new Intent(AlarmClock.ACTION_SHOW_ALARMS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
                 PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
         v.setOnClickPendingIntent(R.id.analog, alarms);
+        v.setOnClickPendingIntent(R.id.analog_nosec, alarms);
 
         PendingIntent calPi = PendingIntent.getActivity(c, 12,
                 new Intent(c, CalendarActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK),

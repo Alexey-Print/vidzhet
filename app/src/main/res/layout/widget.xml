@@ -38,9 +38,14 @@
           android:format12Hour="HH:mm" android:format24Hour="HH:mm" android:textSize="24sp"
           android:textStyle="bold" android:textColor="#FF66D17A" android:includeFontPadding="false"
           android:paddingStart="6dp" android:paddingEnd="6dp" android:paddingBottom="2dp"/>
-      <AnalogClock android:id="@+id/analog" android:layout_width="match_parent" android:layout_height="0dp"
-          android:layout_weight="1" android:dial="@drawable/dial" android:hand_hour="@drawable/hand_hour"
-          android:hand_minute="@drawable/hand_minute" android:hand_second="@drawable/hand_second_0"/>
+      <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
+        <AnalogClock android:id="@+id/analog" android:layout_width="match_parent" android:layout_height="match_parent"
+            android:dial="@drawable/dial" android:hand_hour="@drawable/hand_hour"
+            android:hand_minute="@drawable/hand_minute" android:hand_second="@drawable/hand_second_0"/>
+        <AnalogClock android:id="@+id/analog_nosec" android:layout_width="match_parent" android:layout_height="match_parent"
+            android:dial="@drawable/dial" android:hand_hour="@drawable/hand_hour"
+            android:hand_minute="@drawable/hand_minute" android:visibility="gone"/>
+      </FrameLayout>
     </LinearLayout>
   </LinearLayout>
 </FrameLayout>
