@@ -8,7 +8,9 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.Switch;
@@ -72,6 +74,21 @@ public class SettingsActivity extends Activity {
             public void onStopTrackingTouch(SeekBar s) {}
         });
         root.addView(sb);
+
+        Button save = new Button(this);
+        save.setText("Сохранить");
+        save.setAllCaps(false);
+        save.setTextSize(16);
+        save.setTextColor(0xFF08210E);
+        save.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFF66D17A));
+        save.setOnClickListener(v -> {
+            ClockWidget.updateAll(this);
+            Toast.makeText(this, "Сохранено", Toast.LENGTH_SHORT).show();
+            finish();
+        });
+        LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(-1, dp(48));
+        bp.topMargin = dp(12);
+        root.addView(save, bp);
 
         TextView hint = new TextView(this);
         hint.setText("Поставить виджет: удерживайте палец на пустом месте экрана → Виджеты → «Часы-календарь».\nНажатие на цифровые часы открывает эти настройки, на стрелочные — будильник.");
