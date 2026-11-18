@@ -35,6 +35,7 @@ public class ClockWidget extends AppWidgetProvider {
     static int weekend(SharedPreferences p) { return p.getInt("weekend", 1); }
     static int second(SharedPreferences p)  { return p.getInt("second", 0); }
     static boolean showSec(SharedPreferences p) { return p.getBoolean("showSec", true); }
+    static int date(SharedPreferences p)    { return p.getInt("date", 10); }
     static int alpha(SharedPreferences p)   { return p.getInt("alpha", 100); }
 
     @Override public void onUpdate(Context c, AppWidgetManager m, int[] ids) {
@@ -79,6 +80,9 @@ public class ClockWidget extends AppWidgetProvider {
 
         v.setInt(R.id.bg, "setImageAlpha", Math.round(alpha(p) * 255 / 100f));
         v.setTextColor(R.id.time, Pal.COLORS[time(p)]);
+        int dc = Pal.COLORS[date(p)];
+        v.setTextColor(R.id.date, dc);
+        v.setTextColor(R.id.wday, (dc & 0x00FFFFFF) | 0xD0000000);
         v.setIcon(R.id.analog, "setSecondHand", Icon.createWithResource(c,
                 showSec(p) ? Pal.SECOND[second(p)] : R.drawable.hand_empty));
 

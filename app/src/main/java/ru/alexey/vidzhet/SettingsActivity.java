@@ -40,9 +40,10 @@ public class SettingsActivity extends Activity {
         root.setPadding(dp(12), dp(28), dp(12), dp(12));
 
         preview = new FrameLayout(this);
-        root.addView(preview, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(170)));
+        root.addView(preview, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(160)));
         refresh();
 
+        colorRow("Дата и день недели", "date");
         colorRow("Цифровые часы", "time");
         colorRow("Кружок «сегодня»", "today");
         colorRow("Выходные дни", "weekend");
@@ -114,7 +115,7 @@ public class SettingsActivity extends Activity {
         root.addView(btns, bp);
 
         TextView hint = new TextView(this);
-        hint.setText("Поставить виджет: удерживайте палец на пустом месте экрана → Виджеты → «Часы-календарь».\nНажатие на цифровые часы открывает эти настройки, на стрелочные — будильник.");
+        hint.setText("Нажатие на цифры — настройки, на стрелочные часы — будильник.");
         hint.setTextColor(0xFF9A9A9A);
         hint.setTextSize(12);
         LinearLayout.LayoutParams hp = new LinearLayout.LayoutParams(-1, -2);
@@ -129,7 +130,7 @@ public class SettingsActivity extends Activity {
         t.setText(s);
         t.setTextColor(Color.WHITE);
         t.setTextSize(14);
-        t.setPadding(0, dp(10), 0, dp(4));
+        t.setPadding(0, dp(8), 0, dp(2));
         return t;
     }
 
@@ -165,6 +166,7 @@ public class SettingsActivity extends Activity {
         switch (key) {
             case "time": return ClockWidget.time(p);
             case "today": return ClockWidget.today(p);
+            case "date": return ClockWidget.date(p);
             case "weekend": return ClockWidget.weekend(p);
             default: return ClockWidget.second(p);
         }
