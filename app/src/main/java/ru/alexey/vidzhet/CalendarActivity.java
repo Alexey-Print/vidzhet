@@ -82,7 +82,7 @@ public class CalendarActivity extends Activity {
         today.setTextSize(16);
         today.setTextColor(onAccent);
         today.setBackground(round(accent, 24));
-        today.setOnClickListener(v -> { if (offset == 0) finish(); else { offset = 0; draw(); } });
+        today.setOnClickListener(v -> { if (offset == 0) goHome(); else { offset = 0; draw(); } });
         LinearLayout.LayoutParams tp = new LinearLayout.LayoutParams(dp(150), dp(46));
         tp.gravity = Gravity.CENTER_HORIZONTAL;
         tp.topMargin = dp(18);
@@ -107,6 +107,14 @@ public class CalendarActivity extends Activity {
     @Override public boolean dispatchTouchEvent(MotionEvent e) {
         gd.onTouchEvent(e);
         return super.dispatchTouchEvent(e);
+    }
+
+    void goHome() {
+        android.content.Intent h = new android.content.Intent(android.content.Intent.ACTION_MAIN);
+        h.addCategory(android.content.Intent.CATEGORY_HOME);
+        h.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(h);
+        finishAndRemoveTask();
     }
 
     Button arrow(String s) {

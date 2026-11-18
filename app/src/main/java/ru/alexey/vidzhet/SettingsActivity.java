@@ -115,7 +115,9 @@ public class SettingsActivity extends Activity {
         root.addView(btns, bp);
 
         TextView hint = new TextView(this);
-        hint.setText("Нажатие на цифры — настройки, на календарь — большой календарь, на стрелочные часы — будильник.");
+        String ver = "";
+        try { ver = getPackageManager().getPackageInfo(getPackageName(), 0).versionName; } catch (Exception ignored) {}
+        hint.setText("Нажатие на цифры — настройки, на календарь — большой календарь, на стрелочные часы — будильник.\nВерсия " + ver);
         hint.setTextColor(0xFF9A9A9A);
         hint.setTextSize(12);
         LinearLayout.LayoutParams hp = new LinearLayout.LayoutParams(-1, -2);
