@@ -50,6 +50,9 @@ public class SettingsActivity extends Activity {
         sw.setTextColor(Color.WHITE);
         sw.setTextSize(14);
         sw.setChecked(ClockWidget.showSec(p));
+        int[][] st = {{android.R.attr.state_checked}, {}};
+        sw.setThumbTintList(new android.content.res.ColorStateList(st, new int[]{0xFF66D17A, 0xFFBDBDBD}));
+        sw.setTrackTintList(new android.content.res.ColorStateList(st, new int[]{0xFF2E6B3A, 0xFF555555}));
         sw.setOnCheckedChangeListener((v, on) -> { p.edit().putBoolean("showSec", on).apply(); refresh(); });
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, -2);
         lp.topMargin = dp(10);
@@ -71,7 +74,7 @@ public class SettingsActivity extends Activity {
         root.addView(sb);
 
         TextView hint = new TextView(this);
-        hint.setText("Поставить виджет: удерживайте палец на пустом месте экрана → Виджеты → «Часы-календарь».\nНажатие на цифровые часы открывает эти настройки, на стрелочные — будильник, на календарь — календарь.");
+        hint.setText("Поставить виджет: удерживайте палец на пустом месте экрана → Виджеты → «Часы-календарь».\nНажатие на цифровые часы открывает эти настройки, на стрелочные — будильник.");
         hint.setTextColor(0xFF9A9A9A);
         hint.setTextSize(12);
         LinearLayout.LayoutParams hp = new LinearLayout.LayoutParams(-1, -2);

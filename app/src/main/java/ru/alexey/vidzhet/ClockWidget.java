@@ -9,7 +9,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.drawable.Icon;
-import android.net.Uri;
 import android.provider.AlarmClock;
 import android.view.View;
 import android.widget.RemoteViews;
@@ -49,7 +48,8 @@ public class ClockWidget extends AppWidgetProvider {
         String a = i.getAction();
         if (ACTION_MIDNIGHT.equals(a) || Intent.ACTION_TIME_CHANGED.equals(a)
                 || Intent.ACTION_TIMEZONE_CHANGED.equals(a) || Intent.ACTION_DATE_CHANGED.equals(a)
-                || Intent.ACTION_LOCALE_CHANGED.equals(a) || Intent.ACTION_BOOT_COMPLETED.equals(a)) {
+                || Intent.ACTION_LOCALE_CHANGED.equals(a) || Intent.ACTION_BOOT_COMPLETED.equals(a)
+                || Intent.ACTION_MY_PACKAGE_REPLACED.equals(a)) {
             updateAll(c);
             scheduleMidnight(c);
         }
@@ -124,12 +124,6 @@ public class ClockWidget extends AppWidgetProvider {
                 PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
         v.setOnClickPendingIntent(R.id.analog, alarms);
 
-        Intent ci = new Intent(Intent.ACTION_VIEW,
-                Uri.parse("content://com.android.calendar/time/" + System.currentTimeMillis()))
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        PendingIntent calPi = PendingIntent.getActivity(c, 12, ci,
-                PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
-        v.setOnClickPendingIntent(R.id.left, calPi);
         return v;
     }
 
