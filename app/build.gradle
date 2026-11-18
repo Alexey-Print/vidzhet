@@ -1,0 +1,27 @@
+plugins { id 'com.android.application' }
+android {
+    namespace 'ru.alexey.vidzhet'
+    compileSdk 34
+    defaultConfig {
+        applicationId 'ru.alexey.vidzhet'
+        minSdk 31
+        targetSdk 34
+        versionCode((System.getenv('GITHUB_RUN_NUMBER') ?: '1') as Integer)
+        versionName "1." + (System.getenv('GITHUB_RUN_NUMBER') ?: '0')
+    }
+    signingConfigs {
+        release {
+            storeFile file('release.jks')
+            storePassword 'vidzhet2026'
+            keyAlias 'vidzhet'
+            keyPassword 'vidzhet2026'
+        }
+    }
+    buildTypes {
+        release { minifyEnabled false; signingConfig signingConfigs.release }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}

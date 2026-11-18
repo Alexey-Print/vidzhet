@@ -1,0 +1,138 @@
+package ru.alexey.vidzhet;
+
+import android.app.Activity;
+import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.os.Bundle;
+import android.util.TypedValue;
+import android.view.Gravity;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
+import android.widget.SeekBar;
+import android.widget.Switch;
+import android.widget.TextView;
+
+public class SettingsActivity extends Activity {
+    SharedPreferences p;
+    FrameLayout preview;
+    LinearLayout root;
+
+    int dp(float v) {
+        return Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, v, getResources().getDisplayMetrics()));
+    }
+
+    @Override protected void onCreate(Bundle b) {
+        super.onCreate(b);
+        p = getSharedPreferences(ClockWidget.P, MODE_PRIVATE);
+        getWindow().setStatusBarColor(Color.BLACK);
+        build();
+    }
+
+    void build() {
+        root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setBackgroundColor(0xFF111317);
+        root.setPadding(dp(12), dp(28), dp(12), dp(12));
+
+        preview = new FrameLayout(this);
+        root.addView(preview, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(170)));
+        refresh();
+
+        colorRow("Цифровые часы", "time");
+        colorRow("Кружок «сегодня»", "today");
+        colorRow("Выходные дни", "weekend");
+        colorRow("Секундная стрелка", "second");
+
+        Switch sw = new Switch(this);
+        sw.setText("Показывать секундную стрелку");
+        sw.setTextColor(Color.WHITE);
+        sw.setTextSize(14);
+        sw.setChecked(ClockWidget.showSec(p));
+        sw.setOnCheckedChangeListener((v, on) -> { p.edit().putBoolean("showSec", on).apply(); refresh(); });
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, -2);
+        lp.topMargin = dp(10);
+        root.addView(sw, lp);
+
+        TextView al = label("Фон: " + ClockWidget.alpha(p) + "%  (0 — прозрачный)");
+        root.addView(al);
+        SeekBar sb = new SeekBar(this);
+        sb.setMax(100);
+        sb.setProgress(ClockWidget.alpha(p));
+        sb.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            public void onProgressChanged(SeekBar s, int v, boolean u) {
+                al.setText("Фон: " + v + "%  (0 — прозрачный)");
+                p.edit().putInt("alpha", v).apply(); refresh();
+            }
+            public void onStartTrackingTouch(SeekBar s) {}
+            public void onStopTrackingTouch(SeekBar s) {}
+        });
+        root.addView(sb);
+
+        TextView hint = new TextView(this);
+        hint.setText("Поставить виджет: удерживайте палец на пустом месте экрана → Виджеты → «Часы-календарь».\nНажатие на цифровые часы открывает эти настройки, на стрелочные — будильник, на календарь — календарь.");
+        hint.setTextColor(0xFF9A9A9A);
+        hint.setTextSize(12);
+        LinearLayout.LayoutParams hp = new LinearLayout.LayoutParams(-1, -2);
+        hp.topMargin = dp(10);
+        root.addView(hint, hp);
+
+        setContentView(root);
+    }
+
+    TextView label(String s) {
+        TextView t = new TextView(this);
+        t.setText(s);
+        t.setTextColor(Color.WHITE);
+        t.setTextSize(14);
+        t.setPadding(0, dp(10), 0, dp(4));
+        return t;
+    }
+
+    void colorRow(String title, String key) {
+        root.addView(label(title));
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        int sel = p.getInt(key, defaultFor(key));
+        View[] rings = new View[Pal.COLORS.length];
+        for (int i = 0; i < Pal.COLORS.length; i++) {
+            FrameLayout cell = new FrameLayout(this);
+            View sw = new View(this);
+            sw.setBackgroundResource(Pal.SWATCH[i]);
+            FrameLayout.LayoutParams sp = new FrameLayout.LayoutParams(dp(20), dp(20), Gravity.CENTER);
+            cell.addView(sw, sp);
+            View ring = new View(this);
+            ring.setBackgroundResource(R.drawable.ring);
+            ring.setVisibility(i == sel ? View.VISIBLE : View.INVISIBLE);
+            cell.addView(ring, new FrameLayout.LayoutParams(dp(28), dp(28), Gravity.CENTER));
+            rings[i] = ring;
+            final int idx = i;
+            cell.setOnClickListener(v -> {
+                p.edit().putInt(key, idx).apply();
+                for (int k = 0; k < rings.length; k++) rings[k].setVisibility(k == idx ? View.VISIBLE : View.INVISIBLE);
+                refresh();
+            });
+            row.addView(cell, new LinearLayout.LayoutParams(0, dp(30), 1));
+        }
+        root.addView(row);
+    }
+
+    int defaultFor(String key) {
+        switch (key) {
+            case "time": return ClockWidget.time(p);
+            case "today": return ClockWidget.today(p);
+            case "weekend": return ClockWidget.weekend(p);
+            default: return ClockWidget.second(p);
+        }
+    }
+
+    void refresh() {
+        ClockWidget.updateAll(this);
+        preview.removeAllViews();
+        try {
+            View v = ClockWidget.build(this).apply(this, preview);
+            preview.addView(v);
+        } catch (Exception ignored) {}
+    }
+}
