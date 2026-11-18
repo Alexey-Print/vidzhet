@@ -17,6 +17,7 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 public class SettingsActivity extends Activity {
+    static final String LINK = "https://github.com/Alexey-Print/vidzhet/releases/download/latest/vidzhet.apk";
     SharedPreferences p;
     FrameLayout preview;
     LinearLayout root;
@@ -86,9 +87,30 @@ public class SettingsActivity extends Activity {
             Toast.makeText(this, "Сохранено", Toast.LENGTH_SHORT).show();
             finish();
         });
-        LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(-1, dp(48));
+        Button share = new Button(this);
+        share.setText("Поделиться");
+        share.setAllCaps(false);
+        share.setTextSize(16);
+        share.setTextColor(Color.WHITE);
+        share.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFF3A3F47));
+        share.setOnClickListener(v -> {
+            android.content.Intent i = new android.content.Intent(android.content.Intent.ACTION_SEND);
+            i.setType("text/plain");
+            i.putExtra(android.content.Intent.EXTRA_TEXT,
+                    "Виджет «Часы-календарь» (Android 12 и новее). Скачать и установить:\n" + LINK);
+            startActivity(android.content.Intent.createChooser(i, "Поделиться виджетом"));
+        });
+        LinearLayout btns = new LinearLayout(this);
+        btns.setOrientation(LinearLayout.HORIZONTAL);
+        LinearLayout.LayoutParams l1 = new LinearLayout.LayoutParams(0, dp(48), 1);
+        l1.rightMargin = dp(6);
+        LinearLayout.LayoutParams l2 = new LinearLayout.LayoutParams(0, dp(48), 1);
+        l2.leftMargin = dp(6);
+        btns.addView(share, l1);
+        btns.addView(save, l2);
+        LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(-1, -2);
         bp.topMargin = dp(12);
-        root.addView(save, bp);
+        root.addView(btns, bp);
 
         TextView hint = new TextView(this);
         hint.setText("Поставить виджет: удерживайте палец на пустом месте экрана → Виджеты → «Часы-календарь».\nНажатие на цифровые часы открывает эти настройки, на стрелочные — будильник.");
