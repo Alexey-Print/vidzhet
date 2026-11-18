@@ -82,7 +82,7 @@ public class CalendarActivity extends Activity {
         today.setTextSize(16);
         today.setTextColor(onAccent);
         today.setBackground(round(accent, 24));
-        today.setOnClickListener(v -> { offset = 0; draw(); });
+        today.setOnClickListener(v -> { if (offset == 0) finish(); else { offset = 0; draw(); } });
         LinearLayout.LayoutParams tp = new LinearLayout.LayoutParams(dp(150), dp(46));
         tp.gravity = Gravity.CENTER_HORIZONTAL;
         tp.topMargin = dp(18);
