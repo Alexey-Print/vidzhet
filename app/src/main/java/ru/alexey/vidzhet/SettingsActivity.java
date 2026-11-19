@@ -166,6 +166,7 @@ public class SettingsActivity extends Activity {
         LinearLayout.LayoutParams np = new LinearLayout.LayoutParams(-1, -2);
         np.topMargin = dp(2);
         root.addView(nrow, np);
+        colorRow("Цвет цифр и стрелок циферблата", "dialc", null);
 
         // фон: подпись и ползунок в одну строку
         LinearLayout fon = new LinearLayout(this);
@@ -263,6 +264,7 @@ public class SettingsActivity extends Activity {
             case "today": return ClockWidget.today(p);
             case "date": return ClockWidget.date(p);
             case "wday": return ClockWidget.wday(p);
+            case "dialc": return ClockWidget.dialColor(p);
             case "weekend": return ClockWidget.weekend(p);
             default: return ClockWidget.second(p);
         }
