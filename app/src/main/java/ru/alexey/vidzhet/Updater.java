@@ -84,6 +84,46 @@ public class Updater {
         try { c.getSystemService(NotificationManager.class).notify(1, n); } catch (Exception ignored) {}
     }
 
+    // строка «Версия N  [Проверить обновления]» — для любого экрана
+    static android.widget.LinearLayout versionRow(Activity a) {
+        android.widget.LinearLayout vr = new android.widget.LinearLayout(a);
+        vr.setOrientation(android.widget.LinearLayout.HORIZONTAL);
+        vr.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        android.widget.TextView vt = new android.widget.TextView(a);
+        String ver = "";
+        try { ver = a.getPackageManager().getPackageInfo(a.getPackageName(), 0).versionName; } catch (Exception ignored) {}
+        vt.setText("Версия " + ver);
+        vt.setTextColor(0xFF9A9A9A);
+        vt.setTextSize(13);
+        vr.addView(vt, new android.widget.LinearLayout.LayoutParams(0, -2, 1));
+        android.widget.Button chk = new android.widget.Button(a);
+        chk.setAllCaps(false);
+        chk.setTextColor(0xFFFFFFFF);
+        boolean has0 = hasUpdate(a);
+        chk.setText(has0 ? "Обновить" : "Проверить обновления");
+        chk.setBackground(Ui.round(a, has0 ? 0xFFFF8A3D : 0xFF2A2E35, 16));
+        Ui.fit(chk);
+        Handler ui = new Handler(Looper.getMainLooper());
+        chk.setOnClickListener(v -> {
+            if (hasUpdate(a)) { install(a); return; }
+            chk.setEnabled(false);
+            chk.setText("Проверяю…");
+            new Thread(() -> {
+                boolean has = check(a.getApplicationContext(), false);
+                ClockWidget.updateAll(a.getApplicationContext());
+                ui.post(() -> {
+                    chk.setEnabled(true);
+                    chk.setText(has ? "Обновить" : "Проверить обновления");
+                    chk.setBackground(Ui.round(a, has ? 0xFFFF8A3D : 0xFF2A2E35, 16));
+                    Toast.makeText(a, has ? "Есть новая версия — нажмите «Обновить»" : "У вас последняя версия",
+                            Toast.LENGTH_SHORT).show();
+                });
+            }).start();
+        });
+        vr.addView(chk, new android.widget.LinearLayout.LayoutParams(Ui.dp(a, 190), Ui.dp(a, 38)));
+        return vr;
+    }
+
     // скачать и открыть установщик
     static void install(Activity a) {
         if (!a.getPackageManager().canRequestPackageInstalls()) {

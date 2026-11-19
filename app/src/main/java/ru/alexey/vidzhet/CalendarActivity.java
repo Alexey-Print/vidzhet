@@ -112,6 +112,10 @@ public class CalendarActivity extends Activity {
         tp.topMargin = dp(12);
         root.addView(btns, tp);
 
+        // внизу экрана — версия и проверка обновлений
+        root.addView(new android.view.View(this), new LinearLayout.LayoutParams(-1, 0, 1));
+        root.addView(Updater.versionRow(this));
+
         gd = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
             @Override public boolean onFling(MotionEvent e1, MotionEvent e2, float vx, float vy) {
                 if (e1 == null) return false;

@@ -221,37 +221,7 @@ public class SettingsActivity extends Activity {
         hp.topMargin = dp(4);
         root.addView(hint, hp);
 
-        LinearLayout vr = new LinearLayout(this);
-        vr.setOrientation(LinearLayout.HORIZONTAL);
-        vr.setGravity(Gravity.CENTER_VERTICAL);
-        TextView vt = new TextView(this);
-        vt.setText("Версия " + ver);
-        vt.setTextColor(0xFF9A9A9A);
-        vt.setTextSize(13);
-        vr.addView(vt, new LinearLayout.LayoutParams(0, -2, 1));
-        Button chk = new Button(this);
-        chk.setText("Проверить обновления");
-        chk.setAllCaps(false);
-        chk.setTextColor(Color.WHITE);
-        chk.setBackground(Ui.round(this, 0xFF2A2E35, 16));
-        Ui.fit(chk);
-        chk.setOnClickListener(v -> {
-            chk.setEnabled(false);
-            chk.setText("Проверяю…");
-            new Thread(() -> {
-                boolean has = Updater.check(getApplicationContext(), false);
-                boolean ok = getSharedPreferences(ClockWidget.P, MODE_PRIVATE).getLong("remoteVer", 0) > 0;
-                ClockWidget.updateAll(getApplicationContext());
-                runOnUiThread(() -> {
-                    chk.setEnabled(true);
-                    chk.setText("Проверить обновления");
-                    updBtn.setVisibility(has ? View.VISIBLE : View.GONE);
-                    Toast.makeText(this, has ? "Есть новая версия — нажмите оранжевую кнопку вверху"
-                            : (ok ? "У вас последняя версия" : "Нет интернета, попробуйте позже"), Toast.LENGTH_LONG).show();
-                });
-            }).start();
-        });
-        vr.addView(chk, new LinearLayout.LayoutParams(dp(190), dp(38)));
+        LinearLayout vr = Updater.versionRow(this);
         LinearLayout.LayoutParams vp = new LinearLayout.LayoutParams(-1, -2);
         vp.topMargin = dp(4);
         root.addView(vr, vp);
