@@ -81,6 +81,28 @@ public class SettingsActivity extends Activity {
         bp.topMargin = dp(4);
         root.addView(btns, bp);
 
+        // если виджета на экране нет — кнопка, которая сама предлагает его поставить
+        android.appwidget.AppWidgetManager awm = android.appwidget.AppWidgetManager.getInstance(this);
+        android.content.ComponentName cn = new android.content.ComponentName(this, ClockWidget.class);
+        if (awm.getAppWidgetIds(cn).length == 0) {
+            Button pin = new Button(this);
+            pin.setText("Поставить виджет на экран");
+            pin.setAllCaps(false);
+            pin.setTextSize(15);
+            pin.setTextColor(0xFF062033);
+            pin.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFF4FC3F7));
+            pin.setOnClickListener(v -> {
+                if (awm.isRequestPinAppWidgetSupported()) {
+                    awm.requestPinAppWidget(cn, null, null);
+                } else {
+                    Toast.makeText(this, "Этот телефон не умеет ставить виджет сам. Добавьте через «Виджеты».", Toast.LENGTH_LONG).show();
+                }
+            });
+            LinearLayout.LayoutParams pp = new LinearLayout.LayoutParams(-1, dp(44));
+            pp.topMargin = dp(4);
+            root.addView(pin, pp);
+        }
+
         colorRow("Дата", "date", null);
         colorRow("День недели", "wday", null);
         colorRow("Цифровые часы", "time", null);
