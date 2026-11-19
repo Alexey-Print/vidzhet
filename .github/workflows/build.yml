@@ -18,10 +18,14 @@ jobs:
         with:
           gradle-version: '8.9'
       - run: gradle assembleRelease --no-daemon
-      - run: cp app/build/outputs/apk/release/app-release.apk vidzhet.apk
+      - run: |
+          cp app/build/outputs/apk/release/app-release.apk vidzhet.apk
+          echo "$GITHUB_RUN_NUMBER" > version.txt
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: latest
           name: Часы-календарь
-          files: vidzhet.apk
+          files: |
+            vidzhet.apk
+            version.txt
           make_latest: true

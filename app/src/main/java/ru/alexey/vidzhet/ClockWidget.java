@@ -37,6 +37,7 @@ public class ClockWidget extends AppWidgetProvider {
     static boolean showSec(SharedPreferences p) { return p.getBoolean("showSec", true); }
     static int date(SharedPreferences p)    { return p.getInt("date", 10); }
     static int wday(SharedPreferences p)    { return p.getInt("wday", 11); }
+    static boolean nums(SharedPreferences p) { return p.getBoolean("nums", false); }
     static int alpha(SharedPreferences p)   { return p.getInt("alpha", 100); }
 
     @Override public void onUpdate(Context c, AppWidgetManager m, int[] ids) {
@@ -54,6 +55,11 @@ public class ClockWidget extends AppWidgetProvider {
                 || Intent.ACTION_MY_PACKAGE_REPLACED.equals(a)) {
             updateAll(c);
             scheduleMidnight(c);
+            if (ACTION_MIDNIGHT.equals(a) || Intent.ACTION_BOOT_COMPLETED.equals(a)) {
+                final PendingResult pr = goAsync();
+                final Context app = c.getApplicationContext();
+                new Thread(() -> { try { Updater.check(app, true); } finally { pr.finish(); } }).start();
+            }
         }
     }
 
@@ -84,6 +90,10 @@ public class ClockWidget extends AppWidgetProvider {
         int dc = Pal.COLORS[date(p)];
         v.setTextColor(R.id.date, dc);
         v.setTextColor(R.id.wday, Pal.COLORS[wday(p)]);
+        Icon dial = nums(p) ? Icon.createWithBitmap(Dial.make(0xFFFFFFFF))
+                : Icon.createWithResource(c, R.drawable.dial);
+        v.setIcon(R.id.analog, "setDial", dial);
+        v.setIcon(R.id.analog_nosec, "setDial", dial);
         boolean sec = showSec(p);
         v.setViewVisibility(R.id.analog, sec ? View.VISIBLE : View.GONE);
         v.setViewVisibility(R.id.analog_nosec, sec ? View.GONE : View.VISIBLE);
@@ -95,6 +105,19 @@ public class ClockWidget extends AppWidgetProvider {
 
         Calendar cal = Calendar.getInstance();
         int todayDay = cal.get(Calendar.DAY_OF_MONTH);
+        int curY = cal.get(Calendar.YEAR), curM = cal.get(Calendar.MONTH) + 1;
+        java.util.List<Birthdays.B> allB = Birthdays.load(c);
+        java.util.List<Birthdays.B> todayB = Birthdays.on(allB, curY, curM, todayDay);
+        if (todayB.isEmpty()) {
+            v.setViewVisibility(R.id.wday, View.VISIBLE);
+            v.setViewVisibility(R.id.bday, View.GONE);
+        } else {
+            String t = Birthdays.shortName(todayB.get(0));
+            if (todayB.size() > 1) t += " +" + (todayB.size() - 1);
+            v.setTextViewText(R.id.bday, t);
+            v.setViewVisibility(R.id.wday, View.GONE);
+            v.setViewVisibility(R.id.bday, View.VISIBLE);
+        }
         cal.set(Calendar.DAY_OF_MONTH, 1);
         int off = (cal.get(Calendar.DAY_OF_WEEK) + 5) % 7;
         int n = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
@@ -109,6 +132,8 @@ public class ClockWidget extends AppWidgetProvider {
                 continue;
             }
             v.setTextViewText(id, String.valueOf(day));
+            v.setTextViewCompoundDrawables(id, 0, 0, 0,
+                    Birthdays.on(allB, curY, curM, day).isEmpty() ? R.drawable.bdot_none : R.drawable.bdot);
             boolean wkend = (i % 7) >= 5;
             if (day == todayDay) {
                 v.setInt(id, "setBackgroundResource", Pal.TODAY[today(p)]);

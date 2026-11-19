@@ -19,7 +19,9 @@ import java.util.Calendar;
 public class CalendarActivity extends Activity {
     static final String[] MN = {"Январь","Февраль","Март","Апрель","Май","Июнь","Июль",
             "Август","Сентябрь","Октябрь","Ноябрь","Декабрь"};
-    int offset = 0;
+    int offset = 0, selDay = 0;
+    LinearLayout cards;
+    java.util.List<Birthdays.B> all;
     TextView title;
     GridLayout grid;
     SharedPreferences p;
@@ -57,9 +59,9 @@ public class CalendarActivity extends Activity {
         head.setOrientation(LinearLayout.HORIZONTAL);
         head.setGravity(Gravity.CENTER_VERTICAL);
         Button prev = arrow("‹");
-        prev.setOnClickListener(v -> { offset--; draw(); });
+        prev.setOnClickListener(v -> { offset--; selDay = 0; draw(); });
         Button next = arrow("›");
-        next.setOnClickListener(v -> { offset++; draw(); });
+        next.setOnClickListener(v -> { offset++; selDay = 0; draw(); });
         title = new TextView(this);
         title.setTextColor(Color.WHITE);
         title.setTextSize(22);
@@ -76,17 +78,37 @@ public class CalendarActivity extends Activity {
         gp.topMargin = dp(18);
         root.addView(grid, gp);
 
+        cards = new LinearLayout(this);
+        cards.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams cp = new LinearLayout.LayoutParams(-1, -2);
+        cp.topMargin = dp(8);
+        root.addView(cards, cp);
+
+        LinearLayout btns = new LinearLayout(this);
+        btns.setOrientation(LinearLayout.HORIZONTAL);
         Button today = new Button(this);
         today.setText("Сегодня");
         today.setAllCaps(false);
-        today.setTextSize(16);
+        today.setTextSize(15);
         today.setTextColor(onAccent);
         today.setBackground(round(accent, 24));
-        today.setOnClickListener(v -> { if (offset == 0) goHome(); else { offset = 0; draw(); } });
-        LinearLayout.LayoutParams tp = new LinearLayout.LayoutParams(dp(150), dp(46));
-        tp.gravity = Gravity.CENTER_HORIZONTAL;
-        tp.topMargin = dp(18);
-        root.addView(today, tp);
+        today.setOnClickListener(v -> { if (offset == 0) goHome(); else { offset = 0; selDay = 0; draw(); } });
+        Button bd = new Button(this);
+        bd.setText("Дни рождения");
+        bd.setAllCaps(false);
+        bd.setTextSize(15);
+        bd.setTextColor(0xFF4B1528);
+        bd.setBackground(round(Birthdays.PINK, 24));
+        bd.setOnClickListener(v -> startActivity(new android.content.Intent(this, BirthdaysActivity.class)));
+        LinearLayout.LayoutParams t1 = new LinearLayout.LayoutParams(0, dp(46), 1);
+        t1.rightMargin = dp(6);
+        LinearLayout.LayoutParams t2 = new LinearLayout.LayoutParams(0, dp(46), 1);
+        t2.leftMargin = dp(6);
+        btns.addView(today, t1);
+        btns.addView(bd, t2);
+        LinearLayout.LayoutParams tp = new LinearLayout.LayoutParams(-1, -2);
+        tp.topMargin = dp(12);
+        root.addView(btns, tp);
 
         gd = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
             @Override public boolean onFling(MotionEvent e1, MotionEvent e2, float vx, float vy) {
@@ -94,6 +116,7 @@ public class CalendarActivity extends Activity {
                 float dx = e2.getX() - e1.getX();
                 if (Math.abs(dx) > dp(60) && Math.abs(dx) > Math.abs(e2.getY() - e1.getY())) {
                     offset += dx < 0 ? 1 : -1;
+                    selDay = 0;
                     draw();
                     return true;
                 }
@@ -101,7 +124,11 @@ public class CalendarActivity extends Activity {
             }
         });
         setContentView(root);
-        draw();
+    }
+
+    @Override protected void onResume() {
+        super.onResume();
+        if (title != null) draw();
     }
 
     @Override public boolean dispatchTouchEvent(MotionEvent e) {
@@ -149,27 +176,60 @@ public class CalendarActivity extends Activity {
             t.setTextColor(i >= 5 ? weekendC : 0xFF8A8A8A);
             grid.addView(t);
         }
-        for (int i = 0; i < 42; i++) {
-            int day = i - off + 1;
-            TextView t = cell(cellW, dp(52));
+        all = Birthdays.load(this);
+        int y = c.get(Calendar.YEAR), m = c.get(Calendar.MONTH) + 1;
+        if (selDay == 0 && thisMonth) selDay = todayDay;
+        int cellsN = off + n > 35 ? 42 : 35;
+        for (int i = 0; i < cellsN; i++) {
+            final int day = i - off + 1;
+            LinearLayout cellBox = new LinearLayout(this);
+            cellBox.setOrientation(LinearLayout.VERTICAL);
+            cellBox.setGravity(Gravity.CENTER);
+            GridLayout.LayoutParams lp = new GridLayout.LayoutParams();
+            lp.width = cellW;
+            lp.height = dp(48);
+            cellBox.setLayoutParams(lp);
             if (day >= 1 && day <= n) {
+                TextView t = new TextView(this);
+                t.setGravity(Gravity.CENTER);
+                t.setTextSize(19);
                 t.setText(String.valueOf(day));
                 boolean we = (i % 7) >= 5;
-                if (thisMonth && day == todayDay) {
-                    GradientDrawable g = new GradientDrawable();
-                    g.setShape(GradientDrawable.OVAL);
-                    g.setColor(todayC);
-                    g.setSize(dp(42), dp(42));
-                    android.graphics.drawable.InsetDrawable in = new android.graphics.drawable.InsetDrawable(g,
-                            Math.max(0, (cellW - dp(42)) / 2), dp(5), Math.max(0, (cellW - dp(42)) / 2), dp(5));
-                    t.setBackground(in);
+                boolean isToday = thisMonth && day == todayDay;
+                if (isToday) {
+                    t.setBackground(Ui.oval(todayC));
                     t.setTextColor(onToday);
                     t.setTypeface(null, android.graphics.Typeface.BOLD);
                 } else {
                     t.setTextColor(we ? weekendC : 0xFFEEEEEE);
+                    if (day == selDay) {
+                        GradientDrawable g = new GradientDrawable();
+                        g.setShape(GradientDrawable.OVAL);
+                        g.setStroke(dp(1.5f), Birthdays.PINK);
+                        t.setBackground(g);
+                    }
                 }
+                cellBox.addView(t, new LinearLayout.LayoutParams(dp(36), dp(36)));
+                android.view.View dot = new android.view.View(this);
+                if (!Birthdays.on(all, y, m, day).isEmpty()) dot.setBackground(Ui.oval(Birthdays.PINK));
+                LinearLayout.LayoutParams dl = new LinearLayout.LayoutParams(dp(6), dp(6));
+                dl.topMargin = dp(2);
+                cellBox.addView(dot, dl);
+                cellBox.setOnClickListener(v -> { selDay = day; draw(); });
             }
-            grid.addView(t);
+            grid.addView(cellBox);
+        }
+        // карточки выбранного дня
+        cards.removeAllViews();
+        if (selDay > 0) {
+            for (Birthdays.B b : Birthdays.on(all, y, m, selDay)) {
+                LinearLayout r = Ui.personRow(this, b, null, 0);
+                r.setBackground(round(0xFF1D2128, 12));
+                r.setOnClickListener(v -> startActivity(new android.content.Intent(this, EditBirthdayActivity.class).putExtra("id", b.id)));
+                LinearLayout.LayoutParams rp = new LinearLayout.LayoutParams(-1, -2);
+                rp.bottomMargin = dp(4);
+                cards.addView(r, rp);
+            }
         }
     }
 

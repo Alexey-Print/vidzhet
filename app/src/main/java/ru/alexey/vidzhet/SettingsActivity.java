@@ -21,6 +21,7 @@ public class SettingsActivity extends Activity {
     SharedPreferences p;
     FrameLayout preview;
     LinearLayout root;
+    Button updBtn;
 
     int dp(float v) {
         return Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, v, getResources().getDisplayMetrics()));
@@ -31,6 +32,10 @@ public class SettingsActivity extends Activity {
         p = getSharedPreferences(ClockWidget.P, MODE_PRIVATE);
         getWindow().setStatusBarColor(Color.BLACK);
         build();
+        if (android.os.Build.VERSION.SDK_INT >= 33
+                && checkSelfPermission("android.permission.POST_NOTIFICATIONS") != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"}, 5);
+        }
     }
 
     void build() {
@@ -42,6 +47,22 @@ public class SettingsActivity extends Activity {
         preview = new FrameLayout(this);
         root.addView(preview, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(150)));
         refresh();
+
+        updBtn = new Button(this);
+        updBtn.setText("Есть новая версия — обновить");
+        updBtn.setAllCaps(false);
+        updBtn.setTextSize(15);
+        updBtn.setTextColor(0xFF3A1D00);
+        updBtn.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFFFF8A3D));
+        updBtn.setOnClickListener(v -> Updater.install(this));
+        updBtn.setVisibility(Updater.hasUpdate(this) ? View.VISIBLE : View.GONE);
+        LinearLayout.LayoutParams up = new LinearLayout.LayoutParams(-1, dp(44));
+        up.topMargin = dp(4);
+        root.addView(updBtn, up);
+        new Thread(() -> {
+            boolean has = Updater.check(getApplicationContext(), false);
+            runOnUiThread(() -> updBtn.setVisibility(has ? View.VISIBLE : View.GONE));
+        }).start();
 
         // кнопки сразу под виджетом — всегда видны
         Button save = new Button(this);
@@ -64,8 +85,8 @@ public class SettingsActivity extends Activity {
         share.setOnClickListener(v -> {
             android.content.Intent i = new android.content.Intent(android.content.Intent.ACTION_SEND);
             i.setType("application/vnd.android.package-archive");
-            i.putExtra(android.content.Intent.EXTRA_STREAM, ApkProvider.URI);
-            i.setClipData(android.content.ClipData.newRawUri(ApkProvider.NAME, ApkProvider.URI));
+            i.putExtra(android.content.Intent.EXTRA_STREAM, FilesProvider.APK);
+            i.setClipData(android.content.ClipData.newRawUri(FilesProvider.NAME, FilesProvider.APK));
             i.addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION);
             startActivity(android.content.Intent.createChooser(i, "Отправить программу"));
         });
@@ -116,6 +137,20 @@ public class SettingsActivity extends Activity {
         sw.setTrackTintList(new android.content.res.ColorStateList(st, new int[]{0xFF2E6B3A, 0xFF555555}));
         sw.setOnCheckedChangeListener((v, on) -> { p.edit().putBoolean("showSec", on).apply(); refresh(); });
         colorRow("Секундная стрелка", "second", sw);
+
+        Switch nsw = new Switch(this);
+        nsw.setChecked(ClockWidget.nums(p));
+        nsw.setThumbTintList(new android.content.res.ColorStateList(st, new int[]{0xFF66D17A, 0xFFBDBDBD}));
+        nsw.setTrackTintList(new android.content.res.ColorStateList(st, new int[]{0xFF2E6B3A, 0xFF555555}));
+        nsw.setOnCheckedChangeListener((v, on) -> { p.edit().putBoolean("nums", on).apply(); refresh(); });
+        LinearLayout nrow = new LinearLayout(this);
+        nrow.setOrientation(LinearLayout.HORIZONTAL);
+        nrow.setGravity(Gravity.CENTER_VERTICAL);
+        nrow.addView(label("Цифры на циферблате"), new LinearLayout.LayoutParams(0, -2, 1));
+        nrow.addView(nsw);
+        LinearLayout.LayoutParams np = new LinearLayout.LayoutParams(-1, -2);
+        np.topMargin = dp(6);
+        root.addView(nrow, np);
 
         // фон: подпись и ползунок в одну строку
         LinearLayout fon = new LinearLayout(this);
