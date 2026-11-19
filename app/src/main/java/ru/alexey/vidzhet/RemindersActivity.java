@@ -13,6 +13,7 @@ import java.util.Set;
 // Настройка напоминаний: когда, во сколько, текст поздравления. Без ползунков — только выбор
 public class RemindersActivity extends Activity {
     Set<String> days;
+    LinearLayout checks;
     int hour;
 
     int dp(float v) { return Ui.dp(this, v); }
@@ -83,6 +84,12 @@ public class RemindersActivity extends Activity {
         txt.setMinLines(3);
         root.addView(txt, new LinearLayout.LayoutParams(-1, -2));
 
+        // важно: чтобы напоминания точно приходили (особенно на Xiaomi, Huawei, Honor и т.п.)
+        root.addView(label("Чтобы напоминания точно приходили"));
+        checks = new LinearLayout(this);
+        checks.setOrientation(LinearLayout.VERTICAL);
+        root.addView(checks);
+
         root.addView(new android.view.View(this), new LinearLayout.LayoutParams(-1, 0, 1));
         LinearLayout btns = new LinearLayout(this);
         btns.setOrientation(LinearLayout.HORIZONTAL);
@@ -118,6 +125,93 @@ public class RemindersActivity extends Activity {
         btns.addView(save, l2);
         root.addView(btns);
         setContentView(root);
+    }
+
+    @Override protected void onResume() {
+        super.onResume();
+        if (checks != null) fillChecks();
+    }
+
+    static String brand() { return (android.os.Build.MANUFACTURER + "").toLowerCase(); }
+    static boolean strictBrand() {
+        String b = brand();
+        return b.contains("xiaomi") || b.contains("redmi") || b.contains("poco") || b.contains("huawei")
+                || b.contains("honor") || b.contains("oppo") || b.contains("vivo") || b.contains("realme") || b.contains("oneplus");
+    }
+
+    void fillChecks() {
+        checks.removeAllViews();
+        android.app.NotificationManager nm = getSystemService(android.app.NotificationManager.class);
+        boolean notif = nm.areNotificationsEnabled();
+        checkRow(notif, "Уведомления разрешены", "Уведомления выключены", "Включить", () -> {
+            android.content.Intent i = new android.content.Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                    .putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, getPackageName());
+            startActivity(i);
+        });
+        android.os.PowerManager pm = getSystemService(android.os.PowerManager.class);
+        boolean batt = pm.isIgnoringBatteryOptimizations(getPackageName());
+        checkRow(batt, "Экономия батареи не мешает", "Экономия батареи может усыпить", "Снять", () -> {
+            try {
+                startActivity(new android.content.Intent(android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+                        android.net.Uri.parse("package:" + getPackageName())));
+            } catch (Exception e) { openAppSettings(); }
+        });
+        if (strictBrand()) {
+            checkRow(false, null, "Автозапуск: включите для «Часы-календарь»", "Открыть", this::openAutostart);
+            TextView h = new TextView(this);
+            h.setText("На " + android.os.Build.MANUFACTURER + " телефон сам «усыпляет» программы. В открывшемся окне найдите «Часы-календарь» и включите автозапуск. Если окно не то — в «О приложении» включите «Автозапуск» и в «Контроль активности» выберите «Нет ограничений».");
+            h.setTextColor(0xFF9A9A9A);
+            h.setTextSize(12);
+            h.setPadding(dp(4), dp(4), dp(4), 0);
+            checks.addView(h);
+        }
+    }
+
+    void checkRow(boolean ok, String okText, String badText, String btnText, Runnable fix) {
+        LinearLayout r = new LinearLayout(this);
+        r.setOrientation(LinearLayout.HORIZONTAL);
+        r.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        r.setBackground(Ui.round(this, 0xFF1D2128, 10));
+        r.setPadding(dp(10), dp(4), dp(6), dp(4));
+        TextView t = new TextView(this);
+        t.setText((ok ? "✓  " : "⚠  ") + (ok ? okText : badText));
+        t.setTextColor(ok ? 0xFF66D17A : 0xFFFFC94D);
+        t.setTextSize(14);
+        r.addView(t, new LinearLayout.LayoutParams(0, -2, 1));
+        if (!ok) {
+            Button b = new Button(this);
+            b.setText(btnText);
+            b.setAllCaps(false);
+            b.setTextColor(0xFF3A1D00);
+            b.setBackground(Ui.round(this, 0xFFFFC94D, 16));
+            Ui.fit(b);
+            b.setOnClickListener(v -> fix.run());
+            r.addView(b, new LinearLayout.LayoutParams(dp(96), dp(36)));
+        }
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, dp(46));
+        lp.bottomMargin = dp(4);
+        checks.addView(r, lp);
+    }
+
+    void openAppSettings() {
+        startActivity(new android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                android.net.Uri.parse("package:" + getPackageName())));
+    }
+
+    void openAutostart() {
+        String[][] comps = {
+                {"com.miui.securitycenter", "com.miui.permcenter.autostart.AutoStartManagementActivity"},
+                {"com.huawei.systemmanager", "com.huawei.systemmanager.startupmgr.ui.StartupNormalAppListActivity"},
+                {"com.hihonor.systemmanager", "com.hihonor.systemmanager.startupmgr.ui.StartupNormalAppListActivity"},
+                {"com.coloros.safecenter", "com.coloros.safecenter.permission.startup.StartupAppListActivity"},
+                {"com.vivo.permissionmanager", "com.vivo.permissionmanager.activity.BgStartUpManagerActivity"}};
+        for (String[] c : comps) {
+            try {
+                startActivity(new android.content.Intent().setComponent(new android.content.ComponentName(c[0], c[1])));
+                return;
+            } catch (Exception ignored) {}
+        }
+        openAppSettings();
     }
 
     TextView label(String s) {
