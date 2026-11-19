@@ -44,6 +44,15 @@ public class BirthdaysActivity extends Activity {
                     if (w == 0) startActivity(new Intent(this, EditBirthdayActivity.class));
                     else importClipboard();
                 }).show());
+        Button bell = new Button(this);
+        bell.setText("🔔");
+        bell.setTextSize(18);
+        bell.setPadding(0, 0, 0, 0);
+        bell.setBackground(Ui.oval(0xFF2A2E35));
+        bell.setOnClickListener(v -> startActivity(new Intent(this, RemindersActivity.class)));
+        LinearLayout.LayoutParams bl = new LinearLayout.LayoutParams(Ui.dp(this, 46), Ui.dp(this, 46));
+        bl.rightMargin = Ui.dp(this, 8);
+        head.addView(bell, bl);
         head.addView(add, new LinearLayout.LayoutParams(Ui.dp(this, 46), Ui.dp(this, 46)));
         root.addView(head);
 
@@ -125,6 +134,11 @@ public class BirthdaysActivity extends Activity {
 
     @Override protected void onResume() {
         super.onResume();
+        Reminders.schedule(this);
+        if (android.os.Build.VERSION.SDK_INT >= 33
+                && checkSelfPermission("android.permission.POST_NOTIFICATIONS") != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"}, 6);
+        }
         list.removeAllViews();
         List<Birthdays.B> all = Birthdays.sorted(this);
         if (all.isEmpty()) {

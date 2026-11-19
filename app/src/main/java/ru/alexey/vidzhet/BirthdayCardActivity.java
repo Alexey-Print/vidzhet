@@ -37,9 +37,7 @@ public class BirthdayCardActivity extends Activity {
         if (b == null) { finish(); return; }
 
         // у каждого человека своя гамма (постоянная): свечение и кольцо
-        int[][] TH = {{0xFF78284F, 0xFFFF6FA8}, {0xFF4B2C7A, 0xFFB388FF}, {0xFF1E3F7A, 0xFF4FC3F7},
-                {0xFF14534F, 0xFF4DD0C4}, {0xFF6E3A14, 0xFFFF8A3D}, {0xFF245A2C, 0xFF66D17A}};
-        int[] th = TH[Math.abs(b.id.hashCode()) % TH.length];
+        int[] th = Birthdays.theme(b.id);
         accent = th[1];
 
         FrameLayout frame = new FrameLayout(this);

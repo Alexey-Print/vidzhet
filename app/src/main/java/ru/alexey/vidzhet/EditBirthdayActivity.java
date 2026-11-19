@@ -315,6 +315,7 @@ public class EditBirthdayActivity extends Activity {
         if (!found) all.add(b);
         Birthdays.save(this, all);
         ClockWidget.updateAll(this);
+        Reminders.schedule(this);
         Toast.makeText(this, "Сохранено", Toast.LENGTH_SHORT).show();
         finish();
     }

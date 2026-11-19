@@ -68,6 +68,7 @@ public class ClockWidget extends AppWidgetProvider {
                 || Intent.ACTION_MY_PACKAGE_REPLACED.equals(a)) {
             updateAll(c);
             scheduleMidnight(c);
+            Reminders.schedule(c);
             if (ACTION_MIDNIGHT.equals(a) || Intent.ACTION_BOOT_COMPLETED.equals(a)) {
                 final PendingResult pr = goAsync();
                 final Context app = c.getApplicationContext();
