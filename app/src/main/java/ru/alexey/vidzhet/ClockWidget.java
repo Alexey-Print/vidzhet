@@ -60,7 +60,12 @@ public class ClockWidget extends AppWidgetProvider {
             updateAll(c);
             scheduleMidnight(c);
             Reminders.schedule(c);
-            if (ACTION_MIDNIGHT.equals(a) || Intent.ACTION_BOOT_COMPLETED.equals(a)) {
+            // обновления — раз в неделю (и при открытии настроек)
+            SharedPreferences up = c.getSharedPreferences(P, Context.MODE_PRIVATE);
+            long nowMs = System.currentTimeMillis();
+            boolean weekPassed = nowMs - up.getLong("lastCheck", 0) > 7L * 24 * 3600_000L;
+            if (weekPassed && (ACTION_MIDNIGHT.equals(a) || Intent.ACTION_BOOT_COMPLETED.equals(a))) {
+                up.edit().putLong("lastCheck", nowMs).apply();
                 final PendingResult pr = goAsync();
                 final Context app = c.getApplicationContext();
                 new Thread(() -> { try { if (Updater.check(app, true)) updateAll(app); } finally { pr.finish(); } }).start();
