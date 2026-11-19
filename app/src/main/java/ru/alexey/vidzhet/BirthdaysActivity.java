@@ -39,7 +39,11 @@ public class BirthdaysActivity extends Activity {
         add.setTextColor(0xFF4B1528);
         add.setPadding(0, 0, 0, Ui.dp(this, 3));
         add.setBackground(Ui.oval(Birthdays.PINK));
-        add.setOnClickListener(v -> startActivity(new Intent(this, EditBirthdayActivity.class)));
+        add.setOnClickListener(v -> new android.app.AlertDialog.Builder(this)
+                .setItems(new String[]{"Добавить одного", "Вставить список из буфера"}, (d, w) -> {
+                    if (w == 0) startActivity(new Intent(this, EditBirthdayActivity.class));
+                    else importClipboard();
+                }).show());
         head.addView(add, new LinearLayout.LayoutParams(Ui.dp(this, 46), Ui.dp(this, 46)));
         root.addView(head);
 
@@ -84,6 +88,39 @@ public class BirthdaysActivity extends Activity {
         np.topMargin = Ui.dp(this, 8);
         root.addView(nav, np);
         setContentView(root);
+    }
+
+    // строки вида «25.02.1998 Марина Герина» или «15.03 Волков Володя»
+    void importClipboard() {
+        android.content.ClipboardManager cm = getSystemService(android.content.ClipboardManager.class);
+        String text = "";
+        try { text = cm.getPrimaryClip().getItemAt(0).coerceToText(this).toString(); } catch (Exception ignored) {}
+        java.util.List<Birthdays.B> all = Birthdays.load(this);
+        int added = 0, skipped = 0;
+        java.util.regex.Pattern pt = java.util.regex.Pattern.compile("^\\s*(\\d{1,2})[.\\-/](\\d{1,2})(?:[.\\-/](\\d{4}))?\\s+(.+?)\\s*$");
+        long idBase = System.currentTimeMillis();
+        for (String line : text.split("\\r?\\n")) {
+            java.util.regex.Matcher m = pt.matcher(line);
+            if (!m.matches()) continue;
+            int d = Integer.parseInt(m.group(1)), mo = Integer.parseInt(m.group(2));
+            int y = m.group(3) == null ? 0 : Integer.parseInt(m.group(3));
+            String name = m.group(4);
+            if (mo < 1 || mo > 12 || d < 1 || d > 31) continue;
+            boolean dup = false;
+            for (Birthdays.B o : all) if (o.name.equalsIgnoreCase(name) && o.day == d && o.month == mo) dup = true;
+            if (dup) { skipped++; continue; }
+            Birthdays.B b = new Birthdays.B();
+            b.id = String.valueOf(idBase + added);
+            b.name = name; b.day = d; b.month = mo; b.year = y;
+            all.add(b);
+            added++;
+        }
+        Birthdays.save(this, all);
+        ClockWidget.updateAll(this);
+        android.widget.Toast.makeText(this, added == 0 && skipped == 0
+                ? "В буфере нет списка. Скопируйте список целиком и попробуйте снова"
+                : "Добавлено: " + added + (skipped > 0 ? ", уже были: " + skipped : ""), android.widget.Toast.LENGTH_LONG).show();
+        onResume();
     }
 
     @Override protected void onResume() {

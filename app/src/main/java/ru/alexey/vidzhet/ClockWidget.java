@@ -40,6 +40,7 @@ public class ClockWidget extends AppWidgetProvider {
     // вид циферблата: 0 — чёрточки, 1 — чёрточки и цифры, 2 — крупные цифры
     static int dialStyle(SharedPreferences p) { return p.getInt("dial", p.getBoolean("nums", false) ? 1 : 0); }
     static int dialColor(SharedPreferences p) { return p.getInt("dialc", time(p)); }
+    static int handColor(SharedPreferences p) { return p.getInt("handc", 10); }
     static int alpha(SharedPreferences p)   { return p.getInt("alpha", 100); }
 
     @Override public void onUpdate(Context c, AppWidgetManager m, int[] ids) {
@@ -104,16 +105,16 @@ public class ClockWidget extends AppWidgetProvider {
         v.setTextColor(R.id.wday, Pal.COLORS[wday(p)]);
         int ds = dialStyle(p);
         Icon dial, hh, mh;
+        int hc = Pal.COLORS[handColor(p)];
         if (ds == 2) {
-            int col = Pal.COLORS[dialColor(p)];
-            dial = Icon.createWithBitmap(Dial.make(c, 2, col));
-            hh = Icon.createWithBitmap(Dial.hand(c, 48, 6, col));
-            mh = Icon.createWithBitmap(Dial.hand(c, 82, 5, col));
+            dial = Icon.createWithBitmap(Dial.make(c, 2, Pal.COLORS[dialColor(p)]));
+            hh = Icon.createWithBitmap(Dial.hand(c, 48, 6, hc));
+            mh = Icon.createWithBitmap(Dial.hand(c, 82, 5, hc));
         } else {
             dial = ds == 1 ? Icon.createWithBitmap(Dial.make(c, 1, Pal.COLORS[dialColor(p)]))
                     : Icon.createWithResource(c, R.drawable.dial);
-            hh = Icon.createWithResource(c, R.drawable.hand_hour);
-            mh = Icon.createWithResource(c, R.drawable.hand_minute);
+            hh = Icon.createWithBitmap(Dial.hand(c, 45, 9, hc));
+            mh = Icon.createWithBitmap(Dial.hand(c, 72, 7, hc));
         }
         for (int cid : new int[]{R.id.analog, R.id.analog_nosec}) {
             v.setIcon(cid, "setDial", dial);

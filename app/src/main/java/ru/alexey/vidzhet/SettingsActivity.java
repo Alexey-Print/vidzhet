@@ -187,7 +187,8 @@ public class SettingsActivity extends Activity {
         LinearLayout.LayoutParams np = new LinearLayout.LayoutParams(-1, -2);
         np.topMargin = dp(2);
         root.addView(nrow, np);
-        colorRow("Цвет цифр и стрелок циферблата", "dialc", null);
+        colorRow("Цвет цифр", "dialc", null);
+        colorRow("Цвет часовой и минутной стрелок", "handc", null);
         }
 
         if (!dialMode) {
@@ -289,6 +290,7 @@ public class SettingsActivity extends Activity {
             case "date": return ClockWidget.date(p);
             case "wday": return ClockWidget.wday(p);
             case "dialc": return ClockWidget.dialColor(p);
+            case "handc": return ClockWidget.handColor(p);
             case "weekend": return ClockWidget.weekend(p);
             default: return ClockWidget.second(p);
         }
