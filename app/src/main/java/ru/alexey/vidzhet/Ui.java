@@ -27,6 +27,13 @@ public class Ui {
         return g;
     }
 
+    // надпись на кнопке всегда в одну строку: если не влезает — шрифт сам уменьшается
+    static void fit(android.widget.Button b) {
+        b.setMaxLines(1);
+        b.setPadding(dp(b.getContext(), 6), 0, dp(b.getContext(), 6), 0);
+        b.setAutoSizeTextTypeUniformWithConfiguration(10, 16, 1, TypedValue.COMPLEX_UNIT_SP);
+    }
+
     static GradientDrawable oval(int color) {
         GradientDrawable g = new GradientDrawable();
         g.setShape(GradientDrawable.OVAL);

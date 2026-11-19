@@ -104,6 +104,8 @@ public class CalendarActivity extends Activity {
         t1.rightMargin = dp(6);
         LinearLayout.LayoutParams t2 = new LinearLayout.LayoutParams(0, dp(46), 1);
         t2.leftMargin = dp(6);
+        Ui.fit(today);
+        Ui.fit(bd);
         btns.addView(today, t1);
         btns.addView(bd, t2);
         LinearLayout.LayoutParams tp = new LinearLayout.LayoutParams(-1, -2);

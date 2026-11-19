@@ -188,6 +188,7 @@ public class EditBirthdayActivity extends Activity {
         x.setTextSize(15);
         x.setTextColor(fg);
         x.setBackground(Ui.round(this, bg, 22));
+        Ui.fit(x);
         return x;
     }
 

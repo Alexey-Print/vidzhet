@@ -54,6 +54,7 @@ public class SettingsActivity extends Activity {
         updBtn.setTextSize(15);
         updBtn.setTextColor(0xFF3A1D00);
         updBtn.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFFFF8A3D));
+        Ui.fit(updBtn);
         updBtn.setOnClickListener(v -> Updater.install(this));
         updBtn.setVisibility(Updater.hasUpdate(this) ? View.VISIBLE : View.GONE);
         LinearLayout.LayoutParams up = new LinearLayout.LayoutParams(-1, dp(44));
@@ -96,6 +97,8 @@ public class SettingsActivity extends Activity {
         l1.rightMargin = dp(6);
         LinearLayout.LayoutParams l2 = new LinearLayout.LayoutParams(0, dp(44), 1);
         l2.leftMargin = dp(6);
+        Ui.fit(share);
+        Ui.fit(save);
         btns.addView(share, l1);
         btns.addView(save, l2);
         LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(-1, -2);
