@@ -92,10 +92,23 @@ public class ClockWidget extends AppWidgetProvider {
         v.setTextColor(R.id.date, dc);
         v.setTextColor(R.id.wday, Pal.COLORS[wday(p)]);
         int ds = dialStyle(p);
-        Icon dial = ds == 0 ? Icon.createWithResource(c, R.drawable.dial)
-                : Icon.createWithBitmap(Dial.make(ds, ds == 2 ? Pal.COLORS[time(p)] : 0xFFFFFFFF));
-        v.setIcon(R.id.analog, "setDial", dial);
-        v.setIcon(R.id.analog_nosec, "setDial", dial);
+        Icon dial, hh, mh;
+        if (ds == 2) {
+            int col = Pal.COLORS[time(p)];
+            dial = Icon.createWithBitmap(Dial.make(c, 2, col));
+            hh = Icon.createWithBitmap(Dial.hand(c, 48, 6, col));
+            mh = Icon.createWithBitmap(Dial.hand(c, 82, 5, col));
+        } else {
+            dial = ds == 1 ? Icon.createWithBitmap(Dial.make(c, 1, 0xFFFFFFFF))
+                    : Icon.createWithResource(c, R.drawable.dial);
+            hh = Icon.createWithResource(c, R.drawable.hand_hour);
+            mh = Icon.createWithResource(c, R.drawable.hand_minute);
+        }
+        for (int cid : new int[]{R.id.analog, R.id.analog_nosec}) {
+            v.setIcon(cid, "setDial", dial);
+            v.setIcon(cid, "setHourHand", hh);
+            v.setIcon(cid, "setMinuteHand", mh);
+        }
         boolean sec = showSec(p);
         v.setViewVisibility(R.id.analog, sec ? View.VISIBLE : View.GONE);
         v.setViewVisibility(R.id.analog_nosec, sec ? View.GONE : View.VISIBLE);
