@@ -31,8 +31,8 @@ public class Dial {
         float rn;
         if (style == 2) {
             t.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
-            t.setTextSize(34 * k);
-            rn = 76 * k;
+            t.setTextSize(29 * k);
+            rn = 82 * k;
         } else {
             t.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
             Paint minor = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -49,8 +49,8 @@ public class Dial {
                 c.drawLine(cx + (float) (R * Math.sin(a)), cx - (float) (R * Math.cos(a)),
                         cx + (float) (r2 * Math.sin(a)), cx - (float) (r2 * Math.cos(a)), big ? major : minor);
             }
-            t.setTextSize(22 * k);
-            rn = 64 * k;
+            t.setTextSize(20 * k);
+            rn = 66 * k;
         }
         for (int h = 1; h <= 12; h++) {
             double a = Math.toRadians(h * 30);
