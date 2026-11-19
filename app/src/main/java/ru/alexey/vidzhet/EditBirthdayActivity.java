@@ -316,6 +316,9 @@ public class EditBirthdayActivity extends Activity {
         Birthdays.save(this, all);
         ClockWidget.updateAll(this);
         Reminders.schedule(this);
+        // если день рождения скоро (по выбранным напоминаниям) — напомнить сразу
+        int du = Birthdays.daysUntil(b);
+        if (Reminders.days(this).contains(String.valueOf(du))) Reminders.post(this, b, du);
         Toast.makeText(this, "Сохранено", Toast.LENGTH_SHORT).show();
         finish();
     }
