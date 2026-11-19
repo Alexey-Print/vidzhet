@@ -27,6 +27,16 @@ public class BirthdaysActivity extends Activity {
         LinearLayout head = new LinearLayout(this);
         head.setOrientation(LinearLayout.HORIZONTAL);
         head.setGravity(Gravity.CENTER_VERTICAL);
+        Button back = new Button(this);
+        back.setText("‹");
+        back.setTextSize(24);
+        back.setTextColor(Color.WHITE);
+        back.setPadding(0, 0, 0, Ui.dp(this, 3));
+        back.setBackground(Ui.oval(0xFF3A3F47));
+        back.setOnClickListener(v -> finish());
+        LinearLayout.LayoutParams bl = new LinearLayout.LayoutParams(Ui.dp(this, 46), Ui.dp(this, 46));
+        bl.rightMargin = Ui.dp(this, 10);
+        head.addView(back, bl);
         TextView t = new TextView(this);
         t.setText("Дни рождения");
         t.setTextColor(Color.WHITE);

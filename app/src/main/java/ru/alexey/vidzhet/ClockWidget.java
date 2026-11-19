@@ -131,16 +131,23 @@ public class ClockWidget extends AppWidgetProvider {
                 v.setInt(id, "setBackgroundResource", 0);
                 continue;
             }
-            v.setTextViewText(id, String.valueOf(day));
-            v.setTextViewCompoundDrawables(id, 0, 0, 0,
-                    Birthdays.on(allB, curY, curM, day).isEmpty() ? R.drawable.bdot_none : R.drawable.bdot);
+            boolean hasB = !Birthdays.on(allB, curY, curM, day).isEmpty();
+            if (hasB) {
+                // день рождения: число подчёркнуто
+                android.text.SpannableString ss = new android.text.SpannableString(String.valueOf(day));
+                ss.setSpan(new android.text.style.UnderlineSpan(), 0, ss.length(), 0);
+                ss.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.BOLD), 0, ss.length(), 0);
+                v.setTextViewText(id, ss);
+            } else {
+                v.setTextViewText(id, String.valueOf(day));
+            }
             boolean wkend = (i % 7) >= 5;
             if (day == todayDay) {
                 v.setInt(id, "setBackgroundResource", Pal.TODAY[today(p)]);
                 v.setTextColor(id, onToday);
             } else {
                 v.setInt(id, "setBackgroundResource", 0);
-                v.setTextColor(id, wkend ? we : 0xFFEEEEEE);
+                v.setTextColor(id, hasB ? Birthdays.PINK : (wkend ? we : 0xFFEEEEEE));
             }
         }
         v.setViewVisibility(ROWS[5], off + n > 35 ? View.VISIBLE : View.GONE);
