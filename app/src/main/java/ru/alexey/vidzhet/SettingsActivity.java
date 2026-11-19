@@ -63,11 +63,7 @@ public class SettingsActivity extends Activity {
         LinearLayout.LayoutParams up = new LinearLayout.LayoutParams(-1, dp(44));
         up.topMargin = dp(4);
         root.addView(updBtn, up);
-        new Thread(() -> {
-            boolean has = Updater.check(getApplicationContext(), false);
-            ClockWidget.updateAll(getApplicationContext());
-            runOnUiThread(() -> updBtn.setVisibility(has && !dialMode ? View.VISIBLE : View.GONE));
-        }).start();
+
 
         // кнопки сразу под виджетом — всегда видны
         Button save = new Button(this);
@@ -218,12 +214,47 @@ public class SettingsActivity extends Activity {
         TextView hint = new TextView(this);
         String ver = "";
         try { ver = getPackageManager().getPackageInfo(getPackageName(), 0).versionName; } catch (Exception ignored) {}
-        hint.setText("Цифры — настройки, календарь — большой календарь, стрелки — будильник. Версия " + ver);
+        hint.setText("Цифры — настройки, календарь — большой календарь, стрелки — будильник.");
         hint.setTextColor(0xFF9A9A9A);
         hint.setTextSize(11);
         LinearLayout.LayoutParams hp = new LinearLayout.LayoutParams(-1, -2);
         hp.topMargin = dp(4);
         root.addView(hint, hp);
+
+        LinearLayout vr = new LinearLayout(this);
+        vr.setOrientation(LinearLayout.HORIZONTAL);
+        vr.setGravity(Gravity.CENTER_VERTICAL);
+        TextView vt = new TextView(this);
+        vt.setText("Версия " + ver);
+        vt.setTextColor(0xFF9A9A9A);
+        vt.setTextSize(13);
+        vr.addView(vt, new LinearLayout.LayoutParams(0, -2, 1));
+        Button chk = new Button(this);
+        chk.setText("Проверить обновления");
+        chk.setAllCaps(false);
+        chk.setTextColor(Color.WHITE);
+        chk.setBackground(Ui.round(this, 0xFF2A2E35, 16));
+        Ui.fit(chk);
+        chk.setOnClickListener(v -> {
+            chk.setEnabled(false);
+            chk.setText("Проверяю…");
+            new Thread(() -> {
+                boolean has = Updater.check(getApplicationContext(), false);
+                boolean ok = getSharedPreferences(ClockWidget.P, MODE_PRIVATE).getLong("remoteVer", 0) > 0;
+                ClockWidget.updateAll(getApplicationContext());
+                runOnUiThread(() -> {
+                    chk.setEnabled(true);
+                    chk.setText("Проверить обновления");
+                    updBtn.setVisibility(has ? View.VISIBLE : View.GONE);
+                    Toast.makeText(this, has ? "Есть новая версия — нажмите оранжевую кнопку вверху"
+                            : (ok ? "У вас последняя версия" : "Нет интернета, попробуйте позже"), Toast.LENGTH_LONG).show();
+                });
+            }).start();
+        });
+        vr.addView(chk, new LinearLayout.LayoutParams(dp(190), dp(38)));
+        LinearLayout.LayoutParams vp = new LinearLayout.LayoutParams(-1, -2);
+        vp.topMargin = dp(4);
+        root.addView(vr, vp);
         }
 
         android.widget.ScrollView sv = new android.widget.ScrollView(this);
