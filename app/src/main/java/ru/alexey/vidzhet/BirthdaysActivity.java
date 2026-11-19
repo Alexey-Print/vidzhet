@@ -140,7 +140,7 @@ public class BirthdaysActivity extends Activity {
         for (Birthdays.B b : all) {
             int d = Birthdays.daysUntil(b);
             LinearLayout r = Ui.personRow(this, b, Birthdays.daysText(d), d <= 1 ? Birthdays.PINK : 0xFF66D17A);
-            r.setOnClickListener(v -> startActivity(new Intent(this, EditBirthdayActivity.class).putExtra("id", b.id)));
+            r.setOnClickListener(v -> startActivity(new Intent(this, BirthdayCardActivity.class).putExtra("id", b.id)));
             list.addView(r);
             android.view.View line = new android.view.View(this);
             line.setBackgroundColor(0xFF2A2E35);

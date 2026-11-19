@@ -227,7 +227,7 @@ public class CalendarActivity extends Activity {
             for (Birthdays.B b : Birthdays.on(all, y, m, selDay)) {
                 LinearLayout r = Ui.personRow(this, b, null, 0);
                 r.setBackground(round(0xFF1D2128, 12));
-                r.setOnClickListener(v -> startActivity(new android.content.Intent(this, EditBirthdayActivity.class).putExtra("id", b.id)));
+                r.setOnClickListener(v -> startActivity(new android.content.Intent(this, BirthdayCardActivity.class).putExtra("id", b.id)));
                 LinearLayout.LayoutParams rp = new LinearLayout.LayoutParams(-1, -2);
                 rp.bottomMargin = dp(4);
                 cards.addView(r, rp);

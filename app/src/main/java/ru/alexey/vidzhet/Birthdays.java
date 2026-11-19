@@ -85,7 +85,7 @@ public class Birthdays {
         return t;
     }
 
-    static Calendar next(B b) {
+    public static Calendar next(B b) {
         Calendar t = todayStart();
         Calendar n = (Calendar) t.clone();
         for (int k = 0; k < 2; k++) {
