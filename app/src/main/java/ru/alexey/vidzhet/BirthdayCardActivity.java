@@ -20,12 +20,13 @@ import java.util.Random;
 public class BirthdayCardActivity extends Activity {
     static final String[] WD = {"воскресенье", "понедельник", "вторник", "среда", "четверг", "пятница", "суббота"};
     String id;
+    int accent = Birthdays.PINK;
 
     int dp(float v) { return Ui.dp(this, v); }
 
     @Override protected void onCreate(Bundle b) {
         super.onCreate(b);
-        getWindow().setStatusBarColor(0xFF3A2330);
+        getWindow().setStatusBarColor(0xFF111317);
         getWindow().setNavigationBarColor(0xFF111317);
         id = getIntent().getStringExtra("id");
     }
@@ -35,23 +36,27 @@ public class BirthdayCardActivity extends Activity {
         Birthdays.B b = id == null ? null : Birthdays.find(this, id);
         if (b == null) { finish(); return; }
 
+        // у каждого человека своя гамма (постоянная): свечение и кольцо
+        int[][] TH = {{0xFF78284F, 0xFFFF6FA8}, {0xFF4B2C7A, 0xFFB388FF}, {0xFF1E3F7A, 0xFF4FC3F7},
+                {0xFF14534F, 0xFF4DD0C4}, {0xFF6E3A14, 0xFFFF8A3D}, {0xFF245A2C, 0xFF66D17A}};
+        int[] th = TH[Math.abs(b.id.hashCode()) % TH.length];
+        accent = th[1];
+
+        FrameLayout frame = new FrameLayout(this);
+        frame.addView(new Glow(this, th[0], b.id.hashCode(), dp(56 + 74), dp(74)), new FrameLayout.LayoutParams(-1, -1));
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setBackgroundColor(0xFF111317);
+        frame.addView(root, new FrameLayout.LayoutParams(-1, -1));
 
-        // шапка с конфетти и фото на её краю
-        FrameLayout top = new FrameLayout(this);
-        View conf = new Confetti(this);
-        top.addView(conf, new FrameLayout.LayoutParams(-1, dp(130)));
         FrameLayout ring = new FrameLayout(this);
-        ring.setBackground(Ui.oval(Birthdays.PINK));
+        ring.setBackground(Ui.oval(accent));
         ring.setPadding(dp(4), dp(4), dp(4), dp(4));
-        View av = Ui.avatar(this, b, 132);
+        View av = Ui.avatar(this, b, 140);
         ring.addView(av, new FrameLayout.LayoutParams(-1, -1));
-        FrameLayout.LayoutParams rp = new FrameLayout.LayoutParams(dp(140), dp(140), Gravity.CENTER_HORIZONTAL);
-        rp.topMargin = dp(60);
-        top.addView(ring, rp);
-        root.addView(top, new LinearLayout.LayoutParams(-1, dp(204)));
+        LinearLayout.LayoutParams rp = new LinearLayout.LayoutParams(dp(148), dp(148));
+        rp.gravity = Gravity.CENTER_HORIZONTAL;
+        rp.topMargin = dp(56);
+        root.addView(ring, rp);
 
         TextView name = new TextView(this);
         name.setText(b.name);
@@ -105,7 +110,7 @@ public class BirthdayCardActivity extends Activity {
         btns.addView(back, l1);
         btns.addView(edit, l2);
         root.addView(btns);
-        setContentView(root);
+        setContentView(frame);
     }
 
     static String days(int n) {
@@ -124,6 +129,7 @@ public class BirthdayCardActivity extends Activity {
         c.setPadding(dp(14), dp(10), dp(14), dp(10));
         android.widget.ImageView iv = new android.widget.ImageView(this);
         iv.setImageResource(icon);
+        iv.setColorFilter(accent);
         c.addView(iv, new LinearLayout.LayoutParams(dp(22), dp(22)));
         TextView t = new TextView(this);
         t.setText(text);
@@ -137,26 +143,35 @@ public class BirthdayCardActivity extends Activity {
         return c;
     }
 
-    // разноцветное конфетти на тёмно-розовом фоне
-    static class Confetti extends View {
+    // однотонный фон, мягкое свечение за фото и редкие искорки
+    static class Glow extends View {
         final Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
-        static final int[] C = {0xFFFF6FA8, 0xFFFFC94D, 0xFF4FC3F7, 0xFF66D17A, 0xFFB388FF, 0xFFFF8A3D};
-        Confetti(Context c) { super(c); }
+        static final int[] C = {0xFFFF6FA8, 0xFFFFC94D, 0xFF4FC3F7, 0xFFB388FF, 0xFF66D17A};
+        final int glow, seed, cy, rad;
+        Glow(Context c, int glow, int seed, int cy, int rad) {
+            super(c); this.glow = glow; this.seed = seed; this.cy = cy; this.rad = rad;
+        }
 
         @Override protected void onDraw(Canvas c) {
-            c.drawColor(0xFF3A2330);
-            Random r = new Random(7);
+            c.drawColor(0xFF111317);
+            float cx = getWidth() / 2f;
+            p.setShader(new android.graphics.RadialGradient(cx, cy, rad * 3.2f,
+                    new int[]{glow, (glow & 0x00FFFFFF) | 0x66000000, 0x00111317},
+                    new float[]{0f, 0.55f, 1f}, android.graphics.Shader.TileMode.CLAMP));
+            c.drawRect(0, 0, getWidth(), getHeight(), p);
+            p.setShader(null);
+            Random r = new Random(seed);
             float d = getResources().getDisplayMetrics().density;
-            for (int i = 0; i < 46; i++) {
-                p.setColor(C[i % C.length]);
-                p.setAlpha(210);
-                float x = r.nextFloat() * getWidth(), y = r.nextFloat() * getHeight();
-                float s = (3 + r.nextInt(4)) * d;
-                c.save();
-                c.rotate(r.nextInt(90), x, y);
-                if (i % 3 == 0) c.drawCircle(x, y, s / 1.4f, p);
-                else c.drawRect(x - s, y - s / 2.5f, x + s, y + s / 2.5f, p);
-                c.restore();
+            float textTop = cy + rad + 10 * d, textBottom = cy + rad + 290 * d;
+            for (int i = 0; i < 60; i++) {
+                float x = r.nextFloat() * getWidth(), y = r.nextFloat() * getHeight() * 0.9f;
+                float s = (1.5f + r.nextInt(3)) * d;
+                int col = C[r.nextInt(C.length)];
+                if (Math.hypot(x - cx, y - cy) < rad + 18 * d) continue;
+                if (y > textTop && y < textBottom) continue;
+                p.setColor(col);
+                p.setAlpha(200);
+                c.drawCircle(x, y, s, p);
             }
         }
     }
