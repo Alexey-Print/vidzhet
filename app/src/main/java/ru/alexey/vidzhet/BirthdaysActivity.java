@@ -27,16 +27,6 @@ public class BirthdaysActivity extends Activity {
         LinearLayout head = new LinearLayout(this);
         head.setOrientation(LinearLayout.HORIZONTAL);
         head.setGravity(Gravity.CENTER_VERTICAL);
-        Button back = new Button(this);
-        back.setText("‹");
-        back.setTextSize(24);
-        back.setTextColor(Color.WHITE);
-        back.setPadding(0, 0, 0, Ui.dp(this, 3));
-        back.setBackground(Ui.oval(0xFF3A3F47));
-        back.setOnClickListener(v -> finish());
-        LinearLayout.LayoutParams bl = new LinearLayout.LayoutParams(Ui.dp(this, 46), Ui.dp(this, 46));
-        bl.rightMargin = Ui.dp(this, 10);
-        head.addView(back, bl);
         TextView t = new TextView(this);
         t.setText("Дни рождения");
         t.setTextColor(Color.WHITE);
@@ -60,6 +50,39 @@ public class BirthdaysActivity extends Activity {
         LinearLayout.LayoutParams sp = new LinearLayout.LayoutParams(-1, 0, 1);
         sp.topMargin = Ui.dp(this, 10);
         root.addView(sv, sp);
+
+        // внизу: «Назад» — в календарь, «Выйти» — на главный экран
+        LinearLayout nav = new LinearLayout(this);
+        nav.setOrientation(LinearLayout.HORIZONTAL);
+        Button back = new Button(this);
+        back.setText("‹ Назад");
+        back.setAllCaps(false);
+        back.setTextColor(Color.WHITE);
+        back.setBackground(Ui.round(this, 0xFF3A3F47, 22));
+        Ui.fit(back);
+        back.setOnClickListener(v -> finish());
+        Button exit = new Button(this);
+        exit.setText("Выйти");
+        exit.setAllCaps(false);
+        exit.setTextColor(Color.WHITE);
+        exit.setBackground(Ui.round(this, 0xFF3A3F47, 22));
+        Ui.fit(exit);
+        exit.setOnClickListener(v -> {
+            Intent h = new Intent(Intent.ACTION_MAIN);
+            h.addCategory(Intent.CATEGORY_HOME);
+            h.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(h);
+            finishAffinity();
+        });
+        LinearLayout.LayoutParams n1 = new LinearLayout.LayoutParams(0, Ui.dp(this, 46), 1);
+        n1.rightMargin = Ui.dp(this, 6);
+        LinearLayout.LayoutParams n2 = new LinearLayout.LayoutParams(0, Ui.dp(this, 46), 1);
+        n2.leftMargin = Ui.dp(this, 6);
+        nav.addView(back, n1);
+        nav.addView(exit, n2);
+        LinearLayout.LayoutParams np = new LinearLayout.LayoutParams(-1, -2);
+        np.topMargin = Ui.dp(this, 8);
+        root.addView(nav, np);
         setContentView(root);
     }
 
