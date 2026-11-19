@@ -67,6 +67,12 @@ public class Birthdays {
         return new File(d, id + ".jpg");
     }
 
+    public static File photoSrcFile(Context c, String id) {
+        File d = new File(c.getFilesDir(), "photos");
+        d.mkdirs();
+        return new File(d, id + "_src.jpg");
+    }
+
     public static Bitmap photo(Context c, String id) {
         File f = photoFile(c, id);
         return f.exists() ? BitmapFactory.decodeFile(f.getAbsolutePath()) : null;

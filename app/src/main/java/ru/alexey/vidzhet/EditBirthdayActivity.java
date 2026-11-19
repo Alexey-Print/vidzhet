@@ -29,7 +29,8 @@ import java.util.List;
 
 // Добавить / изменить день рождения
 public class EditBirthdayActivity extends Activity {
-    static final int REQ_CAM = 1, REQ_GAL = 2;
+    static final int REQ_CAM = 1, REQ_GAL = 2, REQ_CROP = 3;
+    boolean newSrc;
     Birthdays.B b;
     boolean isNew;
     Bitmap newPhoto;
@@ -103,20 +104,29 @@ public class EditBirthdayActivity extends Activity {
         c1.addView(day, new LinearLayout.LayoutParams(-1, dp(46)));
         c2.addView(label("Месяц"));
         month = new Spinner(this);
-        ArrayAdapter<String> ad = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, Birthdays.MONTHS);
+        ArrayAdapter<String> ad = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, Birthdays.MONTHS) {
+            @Override public View getView(int pos, View cv, android.view.ViewGroup parent) {
+                TextView tv = (TextView) super.getView(pos, cv, parent);
+                tv.setTextColor(Color.WHITE);
+                tv.setSingleLine(true);
+                tv.setPadding(dp(10), 0, dp(4), 0);
+                tv.setAutoSizeTextTypeUniformWithConfiguration(10, 16, 1, android.util.TypedValue.COMPLEX_UNIT_SP);
+                return tv;
+            }
+        };
         ad.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         month.setAdapter(ad);
         month.setBackground(Ui.round(this, 0xFF1D2128, 10));
         month.setSelection(b.month > 0 ? b.month - 1 : Calendar.getInstance().get(Calendar.MONTH));
         c2.addView(month, new LinearLayout.LayoutParams(-1, dp(46)));
-        c3.addView(label("Год (можно пусто)"));
+        c3.addView(label("Год"));
         year = field("1998", InputType.TYPE_CLASS_NUMBER);
         if (b.year > 0) year.setText(String.valueOf(b.year));
         c3.addView(year, new LinearLayout.LayoutParams(-1, dp(46)));
-        LinearLayout.LayoutParams l1 = new LinearLayout.LayoutParams(0, -2, 1f);
-        LinearLayout.LayoutParams l2 = new LinearLayout.LayoutParams(0, -2, 1.7f);
+        LinearLayout.LayoutParams l1 = new LinearLayout.LayoutParams(0, -2, 0.8f);
+        LinearLayout.LayoutParams l2 = new LinearLayout.LayoutParams(0, -2, 2f);
         l2.leftMargin = dp(6); l2.rightMargin = dp(6);
-        LinearLayout.LayoutParams l3 = new LinearLayout.LayoutParams(0, -2, 1.4f);
+        LinearLayout.LayoutParams l3 = new LinearLayout.LayoutParams(0, -2, 1.2f);
         row.addView(c1, l1); row.addView(c2, l2); row.addView(c3, l3);
         root.addView(row);
 
@@ -199,11 +209,24 @@ public class EditBirthdayActivity extends Activity {
 
     void askPhoto() {
         boolean has = photoHint.getVisibility() == View.GONE;
-        String[] items = has ? new String[]{"Камера", "Галерея", "Убрать фото"} : new String[]{"Камера", "Галерея"};
-        new AlertDialog.Builder(this).setTitle("Фото").setItems(items, (d, w) -> {
-            if (w == 0) camera();
-            else if (w == 1) gallery();
-            else { newPhoto = null; removePhoto = true; showPhoto(null); }
+        File cs = new File(getCacheDir(), "crop_src.jpg");
+        boolean canCrop = has && (newSrc ? cs.exists() : Birthdays.photoSrcFile(this, b.id).exists());
+        java.util.List<String> items = new java.util.ArrayList<>();
+        items.add("Камера");
+        items.add("Галерея");
+        if (canCrop) items.add("Увеличить / сдвинуть");
+        if (has) items.add("Убрать фото");
+        new AlertDialog.Builder(this).setTitle("Фото").setItems(items.toArray(new String[0]), (d, w) -> {
+            String it = items.get(w);
+            if (it.equals("Камера")) camera();
+            else if (it.equals("Галерея")) gallery();
+            else if (it.startsWith("Увеличить")) {
+                try {
+                    if (!newSrc) PhotoTools.copy(Birthdays.photoSrcFile(this, b.id), cs);
+                    startActivityForResult(new Intent(this, CropActivity.class), REQ_CROP);
+                } catch (Exception e) { Toast.makeText(this, "Не получилось", Toast.LENGTH_SHORT).show(); }
+            }
+            else { newPhoto = null; newSrc = false; removePhoto = true; showPhoto(null); }
         }).show();
     }
 
@@ -235,16 +258,27 @@ public class EditBirthdayActivity extends Activity {
         super.onActivityResult(req, res, data);
         if (res != RESULT_OK) return;
         try {
-            Bitmap bm = null;
+            if (req == REQ_CROP) {
+                File out = new File(getCacheDir(), "crop_out.jpg");
+                Bitmap bm = android.graphics.BitmapFactory.decodeFile(out.getAbsolutePath());
+                if (bm != null) { newPhoto = bm; removePhoto = false; showPhoto(bm); }
+                return;
+            }
+            Bitmap big = null;
             if (req == REQ_CAM) {
                 File f = new File(getCacheDir(), "cam.jpg");
-                bm = PhotoTools.load(() -> new java.io.FileInputStream(f));
+                big = PhotoTools.loadLarge(() -> new java.io.FileInputStream(f));
                 f.delete();
             } else if (req == REQ_GAL && data != null && data.getData() != null) {
                 android.net.Uri u = data.getData();
-                bm = PhotoTools.load(() -> getContentResolver().openInputStream(u));
+                big = PhotoTools.loadLarge(() -> getContentResolver().openInputStream(u));
             }
-            if (bm != null) { newPhoto = bm; removePhoto = false; showPhoto(bm); }
+            if (big != null) {
+                // сразу открываем кадрирование
+                PhotoTools.save(big, new File(getCacheDir(), "crop_src.jpg"));
+                newSrc = true;
+                startActivityForResult(new Intent(this, CropActivity.class), REQ_CROP);
+            }
         } catch (Exception e) {
             Toast.makeText(this, "Не получилось взять фото", Toast.LENGTH_SHORT).show();
         }
@@ -265,8 +299,13 @@ public class EditBirthdayActivity extends Activity {
         }
         b.name = n; b.day = d; b.month = m; b.year = y;
         try {
-            if (newPhoto != null) PhotoTools.save(newPhoto, Birthdays.photoFile(this, b.id));
-            else if (removePhoto) Birthdays.photoFile(this, b.id).delete();
+            if (newPhoto != null) {
+                PhotoTools.save(newPhoto, Birthdays.photoFile(this, b.id));
+                if (newSrc) PhotoTools.copy(new File(getCacheDir(), "crop_src.jpg"), Birthdays.photoSrcFile(this, b.id));
+            } else if (removePhoto) {
+                Birthdays.photoFile(this, b.id).delete();
+                Birthdays.photoSrcFile(this, b.id).delete();
+            }
         } catch (Exception e) {
             Toast.makeText(this, "Фото не сохранилось", Toast.LENGTH_SHORT).show();
         }
@@ -285,6 +324,7 @@ public class EditBirthdayActivity extends Activity {
         for (int i = all.size() - 1; i >= 0; i--) if (all.get(i).id.equals(b.id)) all.remove(i);
         Birthdays.save(this, all);
         Birthdays.photoFile(this, b.id).delete();
+        Birthdays.photoSrcFile(this, b.id).delete();
         ClockWidget.updateAll(this);
         finish();
     }
