@@ -46,16 +46,7 @@ public class ClockWidget extends AppWidgetProvider {
     @Override public void onUpdate(Context c, AppWidgetManager m, int[] ids) {
         updateAll(c);
         scheduleMidnight(c);
-        SharedPreferences p = c.getSharedPreferences(P, Context.MODE_PRIVATE);
-        long now = System.currentTimeMillis();
-        if (now - p.getLong("lastCheck", 0) > 3 * 3600_000L) {
-            p.edit().putLong("lastCheck", now).apply();
-            final PendingResult pr = goAsync();
-            final Context app = c.getApplicationContext();
-            new Thread(() -> {
-                try { if (Updater.check(app, true)) updateAll(app); } finally { pr.finish(); }
-            }).start();
-        }
+
     }
     @Override public void onEnabled(Context c) { scheduleMidnight(c); }
 
