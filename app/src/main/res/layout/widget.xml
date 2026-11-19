@@ -20,6 +20,13 @@
             android:includeFontPadding="false" android:paddingBottom="1dp"
             android:autoSizeTextType="uniform" android:autoSizeMinTextSize="10sp"
             android:autoSizeMaxTextSize="18sp" android:autoSizeStepGranularity="1sp"/>
+        <TextView android:id="@+id/upd" android:layout_width="0dp" android:layout_height="match_parent"
+            android:layout_weight="1" android:layout_marginStart="8dp" android:visibility="gone"
+            android:text="⬆ Обновить" android:textColor="#FFFF8A3D" android:textStyle="bold"
+            android:maxLines="1" android:gravity="bottom|start"
+            android:includeFontPadding="false" android:paddingBottom="1dp"
+            android:autoSizeTextType="uniform" android:autoSizeMinTextSize="10sp"
+            android:autoSizeMaxTextSize="16sp" android:autoSizeStepGranularity="1sp"/>
         <TextView android:id="@+id/bday" android:layout_width="0dp" android:layout_height="match_parent"
             android:layout_weight="1" android:layout_marginStart="8dp" android:visibility="gone"
             android:textColor="#FFFF6FA8" android:maxLines="1" android:gravity="bottom|start"

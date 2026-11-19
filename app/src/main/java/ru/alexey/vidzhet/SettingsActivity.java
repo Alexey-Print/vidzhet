@@ -38,7 +38,10 @@ public class SettingsActivity extends Activity {
         }
     }
 
+    boolean dialMode;
+
     void build() {
+        dialMode = getIntent().getBooleanExtra("dial", false);
         root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setBackgroundColor(0xFF111317);
@@ -56,13 +59,14 @@ public class SettingsActivity extends Activity {
         updBtn.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFFFF8A3D));
         Ui.fit(updBtn);
         updBtn.setOnClickListener(v -> Updater.install(this));
-        updBtn.setVisibility(Updater.hasUpdate(this) ? View.VISIBLE : View.GONE);
+        updBtn.setVisibility(!dialMode && Updater.hasUpdate(this) ? View.VISIBLE : View.GONE);
         LinearLayout.LayoutParams up = new LinearLayout.LayoutParams(-1, dp(44));
         up.topMargin = dp(4);
         root.addView(updBtn, up);
         new Thread(() -> {
             boolean has = Updater.check(getApplicationContext(), false);
-            runOnUiThread(() -> updBtn.setVisibility(has ? View.VISIBLE : View.GONE));
+            ClockWidget.updateAll(getApplicationContext());
+            runOnUiThread(() -> updBtn.setVisibility(has && !dialMode ? View.VISIBLE : View.GONE));
         }).start();
 
         // кнопки сразу под виджетом — всегда видны
@@ -97,6 +101,10 @@ public class SettingsActivity extends Activity {
         l1.rightMargin = dp(6);
         LinearLayout.LayoutParams l2 = new LinearLayout.LayoutParams(0, dp(44), 1);
         l2.leftMargin = dp(6);
+        if (dialMode) {
+            share.setText("‹ Назад");
+            share.setOnClickListener(v -> finish());
+        }
         Ui.fit(share);
         Ui.fit(save);
         btns.addView(share, l1);
@@ -108,7 +116,7 @@ public class SettingsActivity extends Activity {
         // если виджета на экране нет — кнопка, которая сама предлагает его поставить
         android.appwidget.AppWidgetManager awm = android.appwidget.AppWidgetManager.getInstance(this);
         android.content.ComponentName cn = new android.content.ComponentName(this, ClockWidget.class);
-        if (awm.getAppWidgetIds(cn).length == 0) {
+        if (!dialMode && awm.getAppWidgetIds(cn).length == 0) {
             Button pin = new Button(this);
             pin.setText("Поставить виджет на экран");
             pin.setAllCaps(false);
@@ -127,12 +135,25 @@ public class SettingsActivity extends Activity {
             root.addView(pin, pp);
         }
 
-        colorRow("Дата", "date", null);
-        colorRow("День недели", "wday", null);
-        colorRow("Цифровые часы", "time", null);
-        colorRow("Кружок «сегодня»", "today", null);
-        colorRow("Выходные дни", "weekend", null);
+        if (!dialMode) {
+            colorRow("Дата", "date", null);
+            colorRow("День недели", "wday", null);
+            colorRow("Цифровые часы", "time", null);
+            colorRow("Кружок «сегодня»", "today", null);
+            colorRow("Выходные дни", "weekend", null);
+            Button dialBtn = new Button(this);
+            dialBtn.setText("Стрелочные часы  ›");
+            dialBtn.setAllCaps(false);
+            dialBtn.setTextColor(Color.WHITE);
+            dialBtn.setBackground(Ui.round(this, 0xFF2A2E35, 18));
+            Ui.fit(dialBtn);
+            dialBtn.setOnClickListener(v -> startActivity(new android.content.Intent(this, SettingsActivity.class).putExtra("dial", true)));
+            LinearLayout.LayoutParams dbp = new LinearLayout.LayoutParams(-1, dp(44));
+            dbp.topMargin = dp(10);
+            root.addView(dialBtn, dbp);
+        }
 
+        if (dialMode) {
         Switch sw = new Switch(this);
         sw.setChecked(ClockWidget.showSec(p));
         int[][] st = {{android.R.attr.state_checked}, {}};
@@ -167,7 +188,9 @@ public class SettingsActivity extends Activity {
         np.topMargin = dp(2);
         root.addView(nrow, np);
         colorRow("Цвет цифр и стрелок циферблата", "dialc", null);
+        }
 
+        if (!dialMode) {
         // фон: подпись и ползунок в одну строку
         LinearLayout fon = new LinearLayout(this);
         fon.setOrientation(LinearLayout.HORIZONTAL);
@@ -200,6 +223,7 @@ public class SettingsActivity extends Activity {
         LinearLayout.LayoutParams hp = new LinearLayout.LayoutParams(-1, -2);
         hp.topMargin = dp(4);
         root.addView(hint, hp);
+        }
 
         android.widget.ScrollView sv = new android.widget.ScrollView(this);
         sv.setBackgroundColor(0xFF111317);
@@ -268,6 +292,11 @@ public class SettingsActivity extends Activity {
             case "weekend": return ClockWidget.weekend(p);
             default: return ClockWidget.second(p);
         }
+    }
+
+    @Override protected void onResume() {
+        super.onResume();
+        if (preview != null) refresh();
     }
 
     void refresh() {

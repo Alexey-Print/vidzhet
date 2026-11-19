@@ -45,6 +45,16 @@ public class ClockWidget extends AppWidgetProvider {
     @Override public void onUpdate(Context c, AppWidgetManager m, int[] ids) {
         updateAll(c);
         scheduleMidnight(c);
+        SharedPreferences p = c.getSharedPreferences(P, Context.MODE_PRIVATE);
+        long now = System.currentTimeMillis();
+        if (now - p.getLong("lastCheck", 0) > 3 * 3600_000L) {
+            p.edit().putLong("lastCheck", now).apply();
+            final PendingResult pr = goAsync();
+            final Context app = c.getApplicationContext();
+            new Thread(() -> {
+                try { if (Updater.check(app, true)) updateAll(app); } finally { pr.finish(); }
+            }).start();
+        }
     }
     @Override public void onEnabled(Context c) { scheduleMidnight(c); }
 
@@ -60,7 +70,7 @@ public class ClockWidget extends AppWidgetProvider {
             if (ACTION_MIDNIGHT.equals(a) || Intent.ACTION_BOOT_COMPLETED.equals(a)) {
                 final PendingResult pr = goAsync();
                 final Context app = c.getApplicationContext();
-                new Thread(() -> { try { Updater.check(app, true); } finally { pr.finish(); } }).start();
+                new Thread(() -> { try { if (Updater.check(app, true)) updateAll(app); } finally { pr.finish(); } }).start();
             }
         }
     }
@@ -124,8 +134,11 @@ public class ClockWidget extends AppWidgetProvider {
         int curY = cal.get(Calendar.YEAR), curM = cal.get(Calendar.MONTH) + 1;
         java.util.List<Birthdays.B> allB = Birthdays.load(c);
         java.util.List<Birthdays.B> todayB = Birthdays.on(allB, curY, curM, todayDay);
+        boolean upd = Updater.hasUpdate(c);
+        v.setViewVisibility(R.id.upd, View.GONE);
         if (todayB.isEmpty()) {
-            v.setViewVisibility(R.id.wday, View.VISIBLE);
+            v.setViewVisibility(R.id.wday, upd ? View.GONE : View.VISIBLE);
+            v.setViewVisibility(R.id.upd, upd ? View.VISIBLE : View.GONE);
             v.setViewVisibility(R.id.bday, View.GONE);
         } else {
             String t = Birthdays.shortName(todayB.get(0));
@@ -173,6 +186,7 @@ public class ClockWidget extends AppWidgetProvider {
                 new Intent(c, SettingsActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
                 PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
         v.setOnClickPendingIntent(R.id.time, settings);
+        v.setOnClickPendingIntent(R.id.upd, settings);
 
         PendingIntent alarms = PendingIntent.getActivity(c, 11,
                 new Intent(AlarmClock.ACTION_SHOW_ALARMS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
