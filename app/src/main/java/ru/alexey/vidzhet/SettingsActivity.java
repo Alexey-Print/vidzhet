@@ -141,18 +141,30 @@ public class SettingsActivity extends Activity {
         sw.setOnCheckedChangeListener((v, on) -> { p.edit().putBoolean("showSec", on).apply(); refresh(); });
         colorRow("Секундная стрелка", "second", sw);
 
-        Switch nsw = new Switch(this);
-        nsw.setChecked(ClockWidget.nums(p));
-        nsw.setThumbTintList(new android.content.res.ColorStateList(st, new int[]{0xFF66D17A, 0xFFBDBDBD}));
-        nsw.setTrackTintList(new android.content.res.ColorStateList(st, new int[]{0xFF2E6B3A, 0xFF555555}));
-        nsw.setOnCheckedChangeListener((v, on) -> { p.edit().putBoolean("nums", on).apply(); refresh(); });
+        root.addView(label("Циферблат"));
         LinearLayout nrow = new LinearLayout(this);
         nrow.setOrientation(LinearLayout.HORIZONTAL);
-        nrow.setGravity(Gravity.CENTER_VERTICAL);
-        nrow.addView(label("Цифры на циферблате"), new LinearLayout.LayoutParams(0, -2, 1));
-        nrow.addView(nsw);
+        String[] names = {"Чёрточки", "+ цифры", "Крупные цифры"};
+        Button[] opts = new Button[3];
+        for (int k = 0; k < 3; k++) {
+            Button o = new Button(this);
+            o.setText(names[k]);
+            o.setAllCaps(false);
+            Ui.fit(o);
+            final int idx = k;
+            o.setOnClickListener(v -> {
+                p.edit().putInt("dial", idx).apply();
+                for (int j = 0; j < 3; j++) paintOpt(opts[j], j == idx);
+                refresh();
+            });
+            opts[k] = o;
+            paintOpt(o, k == ClockWidget.dialStyle(p));
+            LinearLayout.LayoutParams op = new LinearLayout.LayoutParams(0, dp(38), k == 2 ? 1.4f : 1f);
+            op.leftMargin = k == 0 ? 0 : dp(4);
+            nrow.addView(o, op);
+        }
         LinearLayout.LayoutParams np = new LinearLayout.LayoutParams(-1, -2);
-        np.topMargin = dp(6);
+        np.topMargin = dp(2);
         root.addView(nrow, np);
 
         // фон: подпись и ползунок в одну строку
@@ -192,6 +204,11 @@ public class SettingsActivity extends Activity {
         sv.setBackgroundColor(0xFF111317);
         sv.addView(root);
         setContentView(sv);
+    }
+
+    void paintOpt(Button o, boolean sel) {
+        o.setBackground(Ui.round(this, sel ? 0xFF66D17A : 0xFF2A2E35, 18));
+        o.setTextColor(sel ? 0xFF08210E : 0xFFDDDDDD);
     }
 
     TextView label(String s) {

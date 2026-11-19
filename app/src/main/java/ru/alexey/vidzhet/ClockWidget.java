@@ -37,7 +37,8 @@ public class ClockWidget extends AppWidgetProvider {
     static boolean showSec(SharedPreferences p) { return p.getBoolean("showSec", true); }
     static int date(SharedPreferences p)    { return p.getInt("date", 10); }
     static int wday(SharedPreferences p)    { return p.getInt("wday", 11); }
-    static boolean nums(SharedPreferences p) { return p.getBoolean("nums", false); }
+    // вид циферблата: 0 — чёрточки, 1 — чёрточки и цифры, 2 — крупные цифры
+    static int dialStyle(SharedPreferences p) { return p.getInt("dial", p.getBoolean("nums", false) ? 1 : 0); }
     static int alpha(SharedPreferences p)   { return p.getInt("alpha", 100); }
 
     @Override public void onUpdate(Context c, AppWidgetManager m, int[] ids) {
@@ -90,8 +91,9 @@ public class ClockWidget extends AppWidgetProvider {
         int dc = Pal.COLORS[date(p)];
         v.setTextColor(R.id.date, dc);
         v.setTextColor(R.id.wday, Pal.COLORS[wday(p)]);
-        Icon dial = nums(p) ? Icon.createWithBitmap(Dial.make(0xFFFFFFFF))
-                : Icon.createWithResource(c, R.drawable.dial);
+        int ds = dialStyle(p);
+        Icon dial = ds == 0 ? Icon.createWithResource(c, R.drawable.dial)
+                : Icon.createWithBitmap(Dial.make(ds, ds == 2 ? Pal.COLORS[time(p)] : 0xFFFFFFFF));
         v.setIcon(R.id.analog, "setDial", dial);
         v.setIcon(R.id.analog_nosec, "setDial", dial);
         boolean sec = showSec(p);
